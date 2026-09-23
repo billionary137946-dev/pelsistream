@@ -2,3 +2,10 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Solo pelisfront/ va al repo -- lo demás es referencia/documentación local,
+# no parte del proyecto que se despliega.
+/index/
+/v.2/
+/LEAME.TXT
+/MAPA_GLOBAL.md
