@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* Paleta exacta del v2 original (login.html/admin.html/operador.html,
+   Tailwind CDN): fondo navy, tarjetas card, borde border, acento dorado en
+   degradado gold->gold2. Se define como tokens (@theme) para poder usarla
+   con las clases de Tailwind v4 (bg-navy, text-gold, border-border, etc.)
+   igual que en el HTML viejo, en vez de reinventar una paleta nueva. */
+@theme {
+  --color-navy: #050d24;
+  --color-card: #0f1d3a;
+  --color-border: #1e3a6e;
+  --color-gold: #f5c800;
+  --color-gold-2: #e6b800;
+
+  --font-display: "Bebas Neue", sans-serif;
+  --font-sans: "Nunito", system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+body {
+  background: var(--color-navy);
+  color: #fff;
+  font-family: var(--font-sans);
+}
+
+input,
+select,
+textarea {
+  font-size: 16px; /* evita el zoom automático de iOS al enfocar un campo */
+}
+
+/* Scroll suave en toda la app, con "rebote" contenido en vez de que el
+   overscroll se filtre a la página completa (molesto en móvil dentro de
+   listas/modales con su propio scroll, como el buscador de cliente en
+   operador o las listas de negocios/operadores/clientes en admin). */
+* {
+  scroll-behavior: smooth;
+}
+.sin-scrollbar {
+  overscroll-behavior: contain;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge viejo */
+}
+.sin-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* Chrome/Safari/Edge */
+}
+
+/* Scrollbar delgada y minimalista: track transparente (no se ve fondo),
+   solo una línea dorada tenue que se marca más al pasar el cursor -- casi
+   invisible hasta que hace falta, en vez de una barra gruesa siempre
+   presente compitiendo con el resto de la UI. */
+:root {
+  scrollbar-color: rgba(245, 200, 0, 0.35) transparent; /* Firefox: thumb, track */
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(245, 200, 0, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gold);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Transición base para cualquier elemento interactivo (botones, tarjetas
+   clicables, links de navegación) -- consistente en toda la app en vez de
+   que cada componente declare su propia transición suelta. */
+button,
+a,
+[role="button"] {
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+button:active:not(:disabled),
+[role="button"]:active {
+  transform: scale(0.97);
+}
+
+/* Cuadrícula de fondo sutil, igual que en login.html/registro.html. */
+.bg-grid {
+  background-image: linear-gradient(rgba(30, 58, 110, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 110, 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Orbes flotantes de fondo (login/registro) */
+@keyframes orb-flota {
+  0%,
+  100% {
+    transform: translateZ(0) scale(1);
+  }
+  33% {
+    transform: translate3d(30px, -40px, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(-20px, 20px, 0) scale(0.95);
+  }
+}
+.animate-orb {
+  animation: orb-flota 9s ease-in-out infinite;
+}
+
+@keyframes tarjeta-entra {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-tarjeta {
+  animation: tarjeta-entra 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-orb,
+  .animate-tarjeta {
+    animation: none;
+  }
+}
+
+.sombra-dorada {
+  box-shadow: 0 6px 24px rgba(245, 200, 0, 0.35);
+}
+.sombra-tarjeta {
+  box-shadow: 0 0 60px rgba(245, 200, 0, 0.08), 0 32px 64px rgba(0, 0, 0, 0.5);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(5, 13, 36, 0.3);
+  border-top-color: #050d24;
+  border-radius: 50%;
+  animation: girar 0.6s linear infinite;
+  display: inline-block;
+}
+.spinner-grande {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(245, 200, 0, 0.15);
+  border-top-color: var(--color-gold);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reutilizados en los formularios del panel admin (negocios/operadores/
+   clientes) para no repetir la misma cadena larga de clases en cada input. */
+.campo {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(30, 58, 110, 0.8);
+  border-radius: 0.75rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.campo::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+  font-weight: 400;
+}
+.campo:focus {
+  border-color: var(--color-gold);
+  background: rgba(245, 200, 0, 0.05);
+}
+
+.btn-gold {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(to bottom right, var(--color-gold), var(--color-gold-2));
+  color: var(--color-navy);
+  border-radius: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  transition: transform 0.15s ease;
+}
+.btn-gold:hover {
+  transform: translateY(-1px);
+}
+.btn-gold:active {
+  transform: scale(0.98);
+}
+
+/* El <select> nativo del sistema operativo se veía blanco/gris por defecto
+   -- fuera de tono contra el navy -- y el texto casi no se leía. Esto lo
+   fuerza a los colores del sistema tanto en el control cerrado como en el
+   menú desplegable (funciona en Chrome/Edge/Firefox; Safari en iOS/macOS
+   solo respeta background/color del <select> mismo, no de <option>, pero
+   ahí el sistema operativo ya usa su propio picker con buen contraste). */
+select.campo {
+  color-scheme: dark;
+}
+select.campo option {
+  background-color: var(--color-card);
+  color: #fff;
+}

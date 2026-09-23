@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>PELISTREAM</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    .fullpage-iframe {
+      position: fixed; /* o absolute si prefieres */
+      inset: 0;        /* equivale a top:0; right:0; bottom:0; left:0; */
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      border: 0;
+    }
+.site-footer {
+  display: none !important;
+}
+.site-header.header-main-layout-1.ast-primary-menu-enabled.ast-logo-title-inline.ast-hide-custom-menu-mobile.ast-builder-menu-toggle-icon.ast-mobile-header-inline {
+  display: none !important;
+}
+
+
+  </style>
+</head>
+<body>
+  <iframe id="appFrame" class="fullpage-iframe" allowfullscreen></iframe>
+
+  <script>
+    // Cambia SOLO esta URL cuando actualices el deploy de Apps Script (ej. al pasar a v.2).
+    var APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0Btbj3wRqGOozSELHjz5JrM-4XQaOS0cKa_l_7wx72d1Zi3V8kK6sEbd8lUi2KPyS/exec';
+
+    // "embed=netlify" le avisa a la app (dentro del iframe) que está corriendo
+    // aquí — así, en vez de navegar la pestaña completa (lo cual la sacaría
+    // de este sitio y mostraría la URL de Apps Script), le manda un mensaje
+    // a ESTA página para que sea ella quien cambie el iframe. Así la barra
+    // de direcciones se queda siempre en pelistream.netlify.app.
+    //
+    // Reenviamos también el query string con el que se abrió ESTA página
+    // (?vista=registro&negocio_id=... por ejemplo, de un link de invitación)
+    // para que Apps Script sepa qué vista servir dentro del iframe, en vez
+    // de mostrar siempre el login por defecto.
+    var paramsEntrada = new URLSearchParams(window.location.search);
+    paramsEntrada.set('embed', 'netlify');
+    document.getElementById('appFrame').src = APP_SCRIPT_URL + '?' + paramsEntrada.toString();
+
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.tipo === 'pelistream-navegar' && e.data.url) {
+        document.getElementById('appFrame').src = e.data.url;
+      }
+    });
+  </script>
+</body>
