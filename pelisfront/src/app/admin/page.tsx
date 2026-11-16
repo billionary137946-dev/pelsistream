@@ -303,7 +303,7 @@ export default function PanelAdmin() {
   }
 
   return (
-    <div className="min-h-[100dvh] pb-24">
+    <div className="min-h-[100dvh] pb-[calc(2rem+env(safe-area-inset-bottom))]">
       <PanelHeader titulo="Panel de administrador" alias={sesion.alias} />
 
       <nav className="flex gap-1 p-3 overflow-x-auto border-b border-border">
@@ -322,7 +322,8 @@ export default function PanelAdmin() {
 
       <Toast datos={toast} onCerrar={() => setToast(null)} />
 
-      <main className="p-4 max-w-3xl mx-auto">
+      {/* Celular: una columna. Tablet/PC: más ancho y las listas en 2-3 columnas. */}
+      <main className="p-4 max-w-3xl lg:max-w-6xl mx-auto">
         {pestana === "inicio" && (
           <>
             {/* Admin vive más en la compu: aquí es tarjeta con "Ahora no" (igual que el panel del entrenador en HGC). */}
@@ -330,7 +331,7 @@ export default function PanelAdmin() {
             {/* Quién pidió "olvidé mi contraseña" (solo aparece si hay solicitudes). */}
             <SolicitudesContrasena onError={(texto) => setToast({ tipo: "error", texto })} />
             {resumen ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <TarjetaResumen etiqueta="Jugadas registradas" valor={resumen.jugadas.toString()} />
                 <TarjetaResumen etiqueta="Volumen apostado" valor={`$${resumen.volumen.toLocaleString("es-MX")}`} />
                 <TarjetaResumen etiqueta="Corretaje ganado" valor={`$${resumen.corretaje.toLocaleString("es-MX")}`} />
@@ -488,7 +489,7 @@ function ModalHistorial({
   const netoTotal = jugadas?.reduce((acc, j) => acc + (j.neto ?? 0), 0) ?? 0;
 
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-md max-h-[80dvh] bg-card border border-border rounded-2xl p-5 animate-tarjeta flex flex-col">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="font-display text-gold text-lg tracking-wide">Historial de {alias}</h3>
@@ -554,7 +555,7 @@ function ModalResumenNegocio({
   onCerrar: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-md bg-card border border-border rounded-2xl p-5 animate-tarjeta">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-gold text-lg tracking-wide">{negocio.nombre}</h3>
@@ -610,7 +611,7 @@ function ModalEditarNegocio({
   const [activo, setActivo] = useState(negocio.activo);
 
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-5 animate-tarjeta">
         <h3 className="font-display text-gold text-lg tracking-wide mb-4">Editar {negocio.nombre}</h3>
 
@@ -685,7 +686,7 @@ function ModalEditarUsuario({
   const [limiteCredito, setLimiteCredito] = useState(String(usuario.limite_credito));
 
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-5 animate-tarjeta max-h-[90dvh] overflow-y-auto">
         <h3 className="font-display text-gold text-lg tracking-wide mb-1">Editar {rol === "operador" ? "operador" : "cliente"}</h3>
         <p className="text-white/40 text-xs mb-4">Celular {usuario.celular} (no se puede cambiar)</p>
@@ -813,7 +814,7 @@ function ModalCrearNegocio({
   onCrear: (evento: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-5 animate-tarjeta max-h-[90dvh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-gold text-lg tracking-wide">Nuevo negocio</h3>
@@ -884,7 +885,7 @@ function ModalCrearUsuario({
   onCrear: (rol: "operador" | "cliente", evento: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-5 animate-tarjeta max-h-[90dvh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-gold text-lg tracking-wide">
@@ -968,7 +969,7 @@ function TablaNegocios({
   onAlternarActivo: (negocio: Negocio) => void;
 }) {
   return (
-    <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: 600 }}>
+    <div className="grid content-start gap-2 md:grid-cols-2 xl:grid-cols-3 max-h-[65dvh] lista-scroll">
       {negocios.length === 0 && (
         <p className="text-white/30 text-sm text-center py-4">Todavía no hay negocios registrados.</p>
       )}
@@ -991,13 +992,13 @@ function TablaNegocios({
           <div className="flex gap-2 mt-3 pt-3 border-t border-border/60">
             <button
               onClick={() => onEditar(n)}
-              className="text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10"
+              className="text-xs font-bold text-gold border border-gold/30 px-3 py-2 min-h-9 rounded-lg hover:bg-gold/10"
             >
               Editar
             </button>
             <button
               onClick={() => onAlternarActivo(n)}
-              className={`text-xs font-bold border px-3 py-1.5 rounded-lg ${
+              className={`text-xs font-bold border px-3 py-2 min-h-9 rounded-lg ${
                 n.activo
                   ? "text-red-300 border-red-400/30 hover:bg-red-400/10"
                   : "text-green-300 border-green-400/30 hover:bg-green-400/10"
@@ -1028,7 +1029,7 @@ function TablaUsuarios({
   onAlternarEstatus: (usuario: Usuario) => void;
 }) {
   return (
-    <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: 600 }}>
+    <div className="grid content-start gap-2 md:grid-cols-2 xl:grid-cols-3 max-h-[65dvh] lista-scroll">
       {usuarios.length === 0 && (
         <p className="text-white/30 text-sm text-center py-4">
           Todavía no hay {rol === "operador" ? "operadores" : "clientes"} registrados.
@@ -1053,7 +1054,7 @@ function TablaUsuarios({
                   e.stopPropagation();
                   onActivarPendiente(u.celular);
                 }}
-                className="text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 flex-shrink-0"
+                className="text-xs font-bold text-gold border border-gold/30 px-3 py-2 min-h-9 rounded-lg hover:bg-gold/10 flex-shrink-0"
                 title="Activa la cuenta que se registró sola por el link público"
               >
                 Activar cuenta
@@ -1071,13 +1072,13 @@ function TablaUsuarios({
             <div className="flex gap-2 mt-3 pt-3 border-t border-border/60">
               <button
                 onClick={() => onEditar(u)}
-                className="text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10"
+                className="text-xs font-bold text-gold border border-gold/30 px-3 py-2 min-h-9 rounded-lg hover:bg-gold/10"
               >
                 Editar
               </button>
               <button
                 onClick={() => onAlternarEstatus(u)}
-                className={`text-xs font-bold border px-3 py-1.5 rounded-lg ${
+                className={`text-xs font-bold border px-3 py-2 min-h-9 rounded-lg ${
                   u.estatus === "activo"
                     ? "text-red-300 border-red-400/30 hover:bg-red-400/10"
                     : "text-green-300 border-green-400/30 hover:bg-green-400/10"

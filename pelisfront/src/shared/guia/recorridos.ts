@@ -14,6 +14,7 @@ export type Pantalla =
   | "operadorCerrar"
   | "operadorEditar"
   | "operadorHistorial"
+  | "operadorClientes"
   | "cliente";
 
 const AYUDA: PasoRecorrido = {
@@ -148,8 +149,8 @@ export const RECORRIDOS: Record<Pantalla, PasoRecorrido[]> = {
     },
     {
       objetivo: '[data-guia="menu"]',
-      titulo: "Jugadas e Historial",
-      texto: "Abajo cambias entre registrar jugadas y ver tu historial.",
+      titulo: "Jugadas, Clientes e Historial",
+      texto: "Abajo cambias entre registrar jugadas, ver a tus clientes con su dinero y revisar tu historial.",
     },
     AYUDA,
   ],
@@ -249,6 +250,35 @@ export const RECORRIDOS: Record<Pantalla, PasoRecorrido[]> = {
       texto: "El saldo del cliente se ajusta solo con la diferencia.",
       consejo: "Solo se pueden editar apuestas pendientes (de peleas que no se han cerrado).",
     },
+  ],
+  operadorClientes: [
+    {
+      objetivo: '[data-guia="op-c-resumen"]',
+      titulo: "Tus clientes de un vistazo",
+      texto: "Cuántos clientes activos tiene tu negocio, cuánto suman sus saldos y cuánto está apostado en peleas que aún no se cierran.",
+    },
+    {
+      objetivo: '[data-guia="op-c-buscar"]',
+      titulo: "Busca a alguien",
+      texto: "Escribe su nombre o celular. ↻ trae los saldos más recientes.",
+    },
+    {
+      objetivo: '[data-guia="op-c-orden"]',
+      titulo: "Ordena la lista",
+      texto: "Por nombre, por quién tiene más saldo o por quién tiene más dinero en juego.",
+    },
+    {
+      objetivo: '[data-guia="op-c-lista"]',
+      titulo: "Cada cliente",
+      texto: "En dorado su saldo (en rojo si debe). Disponible = saldo + crédito: lo máximo que puede apostar. En juego = lo que tiene apostado sin cerrar.",
+      consejo: "Solo lo ves; los saldos los cambia el admin o las apuestas.",
+    },
+    {
+      objetivo: '[data-guia="menu"]',
+      titulo: "Regresa a Jugadas",
+      texto: "Toca Jugadas para seguir registrando apuestas.",
+    },
+    AYUDA,
   ],
   operadorHistorial: [
     {

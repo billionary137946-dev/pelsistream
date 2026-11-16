@@ -20,7 +20,7 @@ export function Modal({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div
         role="dialog"
         aria-modal="true"

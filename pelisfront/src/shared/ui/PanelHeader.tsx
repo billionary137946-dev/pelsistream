@@ -9,7 +9,7 @@ import { abrirRecorrido } from "@/shared/guia/Recorrido";
 export function PanelHeader({ titulo, alias }: Readonly<{ titulo: string; alias: string }>) {
   const router = useRouter();
   return (
-    <header className="flex items-center justify-between gap-2 px-4 py-4 border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-10">
+    <header className="flex items-center justify-between gap-2 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-4 pt-[max(1rem,env(safe-area-inset-top))] border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-10">
       <div className="flex items-center gap-2 min-w-0">
         <LogoPeli tamano="sm" />
         <div className="min-w-0">

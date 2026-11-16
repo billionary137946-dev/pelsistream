@@ -69,8 +69,9 @@ export function PanelCliente() {
     <div className="min-h-[100dvh]">
       <PanelHeader titulo="Mi cuenta" alias={sesion.alias} />
 
-      <main className="p-4 max-w-lg mx-auto">
-        <div data-guia="cli-saldo" className="bg-card border border-border rounded-2xl p-6 text-center sombra-tarjeta">
+      {/* Celular: saldo arriba e historial abajo. PC: saldo a la izquierda (fijo) e historial a la derecha. */}
+      <main className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] max-w-lg md:max-w-2xl lg:max-w-5xl mx-auto lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start">
+        <div data-guia="cli-saldo" className="lg:sticky lg:top-24 bg-card border border-border rounded-2xl p-6 text-center sombra-tarjeta">
           <p className="text-white/50 text-xs uppercase tracking-[.15em] mb-2">Saldo actual</p>
           <p
             className={`font-display text-5xl tracking-wide ${
@@ -81,9 +82,10 @@ export function PanelCliente() {
           </p>
         </div>
 
-        <h2 className="text-white/60 text-xs uppercase tracking-[.15em] mt-8 mb-3">Historial</h2>
+        <div className="min-w-0">
+        <h2 className="text-white/60 text-xs uppercase tracking-[.15em] mt-8 lg:mt-0 mb-3">Historial</h2>
         {/* Lista con su propio scroll: un historial largo no empuja la página. */}
-        <div data-guia="cli-historial" className="flex flex-col gap-2 max-h-[60dvh] overflow-y-auto sin-scrollbar">
+        <div data-guia="cli-historial" className="flex flex-col gap-2 max-h-[60dvh] lista-scroll">
           {jugadas.length === 0 && <p className="text-white/30 text-sm">Todavía no tienes jugadas.</p>}
           {jugadas.map((j) => (
             <div
@@ -104,6 +106,7 @@ export function PanelCliente() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </main>
       <Recorrido pantalla="cliente" />

@@ -22,7 +22,7 @@ export function Toast({ datos, onCerrar }: { datos: DatosToast | null; onCerrar:
   if (!datos) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-sm animate-tarjeta">
+    <div className="fixed top-[max(1rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-sm animate-tarjeta">
       <div
         className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-md ${
           datos.tipo === "ok"

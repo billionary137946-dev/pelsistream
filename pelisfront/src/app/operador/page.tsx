@@ -24,6 +24,7 @@ import { Toast, type DatosToast } from "@/shared/ui/Toast";
 import { LIMITES, limpiarDigitos, limpiarTexto, soloDigitos } from "@/shared/lib/inputs";
 import { InstalarApp } from "@/shared/ui/InstalarApp";
 import { Recorrido } from "@/shared/guia/Recorrido";
+import { ListaClientes } from "@/features/operador/ListaClientes";
 import type { Pantalla } from "@/shared/guia/recorridos";
 
 interface ClienteBusqueda {
@@ -31,6 +32,7 @@ interface ClienteBusqueda {
   alias: string;
   saldo: number;
   limite_credito: number;
+  en_juego?: number; // apostado en peleas sin cerrar (pestaña Clientes)
 }
 
 interface DetalleApuesta {
@@ -125,7 +127,7 @@ function generarIntentoId() {
     : `intento-${Date.now()}-${Math.random()}`;
 }
 
-type Tab = "jugadas" | "historial";
+type Tab = "jugadas" | "clientes" | "historial";
 type ResultadoEvento = "rojo" | "verde" | "empate" | "cancelada";
 
 export default function PanelOperador() {
@@ -627,6 +629,7 @@ export default function PanelOperador() {
     if (apuestaAEditar) return "operadorEditar";
     if (modalResultado) return "operadorCerrar";
     if (tab === "historial") return "operadorHistorial";
+    if (tab === "clientes") return "operadorClientes";
     if (paso === "apuesta") return "operadorApuesta";
     if (paso === "quiniela") return "operadorQuiniela";
     return "operadorJugadas";
@@ -651,18 +654,20 @@ export default function PanelOperador() {
   }
 
   return (
-    <div className="min-h-[100dvh] pb-24">
-      <PanelHeader titulo={tab === "jugadas" ? "Nueva jugada" : "Historial"} alias={sesion.alias} />
+    <div className="min-h-[100dvh] pb-[calc(6rem+env(safe-area-inset-bottom))]">
+      <PanelHeader titulo={tab === "jugadas" ? "Nueva jugada" : tab === "clientes" ? "Mis clientes" : "Historial"} alias={sesion.alias} />
 
       <Toast datos={mensaje} onCerrar={() => setMensaje(null)} />
 
-      <main className="p-4 max-w-lg mx-auto flex flex-col gap-4">
+      {/* Celular: una columna. Tablet: más ancha. PC: jugada a la izquierda y palenques a la derecha. */}
+      <main className="p-4 max-w-lg md:max-w-2xl lg:max-w-6xl mx-auto flex flex-col gap-4">
         {conexionLenta && (
           <p className="text-sm text-amber-300">Tu conexión está lenta, espera un momento…</p>
         )}
 
         {tab === "jugadas" && (
-          <>
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+            <div className="flex flex-col gap-4 min-w-0">
             {/* Encabezado persistente: Tipo + Slots, siempre visible sin
                 importar el paso. */}
             <section className="bg-card border border-border rounded-2xl p-4">
@@ -872,7 +877,7 @@ export default function PanelOperador() {
                   type="button"
                   onClick={volverALaJugada}
                   data-guia="op-volver"
-                  className="self-start flex items-center gap-1.5 text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 transition-colors"
+                  className="self-start flex items-center gap-1.5 text-xs font-bold text-gold border border-gold/30 px-3 py-2 min-h-9 rounded-lg hover:bg-gold/10 transition-colors"
                 >
                   ← Volver a la jugada
                 </button>
@@ -982,7 +987,7 @@ export default function PanelOperador() {
                   type="button"
                   onClick={volverALaJugada}
                   data-guia="op-volver"
-                  className="self-start flex items-center gap-1.5 text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 transition-colors"
+                  className="self-start flex items-center gap-1.5 text-xs font-bold text-gold border border-gold/30 px-3 py-2 min-h-9 rounded-lg hover:bg-gold/10 transition-colors"
                 >
                   ← Volver a la jugada
                 </button>
@@ -1043,6 +1048,9 @@ export default function PanelOperador() {
               </section>
             )}
 
+            </div>
+
+            <div className="min-w-0 lg:sticky lg:top-24">
             {/* Columna/sección de apoyo: Palenques abiertos, salvo cuando hay
                 una quiniela activa, donde se muestra su lista de apostadores. */}
             {paso === "quiniela" ? (
@@ -1054,7 +1062,7 @@ export default function PanelOperador() {
                     {(slotActivoObj.apostadores.length * (Number(slotActivoObj.montoLugar) || 0)).toLocaleString("es-MX")}
                   </p>
                 </div>
-                <div data-guia="op-q-lista" className="sin-scrollbar max-h-[45dvh] overflow-y-auto flex flex-col gap-1.5">
+                <div data-guia="op-q-lista" className="max-h-[45dvh] lista-scroll flex flex-col gap-1.5">
                   {slotActivoObj.apostadores.length === 0 && (
                     <div className="bg-white/[.03] border border-border/60 rounded-xl p-4 text-center text-white/30 text-sm">
                       Sin apostadores aún.
@@ -1122,7 +1130,7 @@ export default function PanelOperador() {
                                   key={ev.evento}
                                   type="button"
                                   onClick={() => setPalenqueTabActivo(ev.evento)}
-                                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                                  className={`flex-shrink-0 px-3 py-2 min-h-9 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                                     activo ? "bg-gold text-navy" : "bg-navy/60 border border-border text-white/50"
                                   }`}
                                 >
@@ -1143,8 +1151,11 @@ export default function PanelOperador() {
                   })()}
               </section>
             )}
-          </>
+            </div>
+          </div>
         )}
+
+        {tab === "clientes" && <ListaClientes clientes={clientes} onActualizar={() => cargarClientes()} />}
 
         {tab === "historial" && (
           <section className="flex flex-col gap-3">
@@ -1154,7 +1165,7 @@ export default function PanelOperador() {
                   <button
                     key={f}
                     onClick={() => setFiltroHistorial(f)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+                    className={`px-3 py-2 min-h-9 rounded-lg text-xs font-bold ${
                       filtroHistorial === f ? "bg-gold text-navy" : "border border-border text-white/50"
                     }`}
                   >
@@ -1175,7 +1186,7 @@ export default function PanelOperador() {
               <p className="text-white/30 text-sm">No hay jugadas que mostrar.</p>
             )}
             {/* Lista con su propia caja de scroll: un historial largo no empuja la página. */}
-            <div data-guia="op-historial" className="flex flex-col gap-2 max-h-[65dvh] overflow-y-auto sin-scrollbar">
+            <div data-guia="op-historial" className="grid content-start gap-2 lg:grid-cols-2 max-h-[65dvh] lista-scroll">
             {historialFiltrado.map((j) => (
               <div key={j.id} className="bg-card/60 border border-border rounded-xl p-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
@@ -1190,7 +1201,7 @@ export default function PanelOperador() {
                     <button
                       onClick={() => setApuestaAEditar(j)}
                       data-guia={j.id === idPrimeraPendiente ? "op-editar" : undefined}
-                      className="text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 flex-shrink-0"
+                      className="text-xs font-bold text-gold border border-gold/30 px-3 py-2 min-h-9 rounded-lg hover:bg-gold/10 flex-shrink-0"
                     >
                       Editar
                     </button>
@@ -1213,9 +1224,13 @@ export default function PanelOperador() {
 
       <BottomNav
         activo={tab}
-        onCambiar={(id) => setTab(id as Tab)}
+        onCambiar={(id) => {
+          setTab(id as Tab);
+          if (id === "clientes") cargarClientes(true); // saldos al día al abrir la pestaña
+        }}
         items={[
           { id: "jugadas", etiqueta: "Jugadas", icono: <span>🎯</span> },
+          { id: "clientes", etiqueta: "Clientes", icono: <span>👥</span> },
           { id: "historial", etiqueta: "Historial", icono: <span>📋</span> },
         ]}
       />
@@ -1328,7 +1343,7 @@ function TarjetaEvento({
 
       <div className="flex">{invertido ? [headerRojo, headerVerde] : [headerVerde, headerRojo]}</div>
 
-      <div className="grid grid-cols-2 divide-x divide-border/60 border-t border-border/60 sin-scrollbar max-h-[160px] overflow-y-auto">
+      <div className="grid grid-cols-2 divide-x divide-border/60 border-t border-border/60 max-h-[160px] lista-scroll">
         {invertido ? [columnaRojo, columnaVerde] : [columnaVerde, columnaRojo]}
       </div>
     </div>
@@ -1355,7 +1370,7 @@ function ModalResultado({
   const { evento, datos, rojoNombre, verdeNombre } = modalResultado;
 
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-5 animate-tarjeta max-h-[90dvh] overflow-y-auto">
         {resultadoElegido === null ? (
           <>
@@ -1503,7 +1518,7 @@ function ModalEditarApuesta({
   const montoValido = montoNum >= 500 && montoNum <= 1_000_000;
 
   return (
-    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-navy/90 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-5 animate-tarjeta">
         <h3 className="font-display text-gold text-lg tracking-wide mb-1">Editar apuesta</h3>
         <p className="text-white/40 text-sm mb-4">{apuesta.evento}</p>

@@ -273,3 +273,19 @@ select.campo option {
   background-color: var(--color-card);
   color: #fff;
 }
+
+/* Listas que crecen (clientes, historiales, listas del admin): scroll propio, barra delgada visible
+   y un desvanecido abajo que avisa "hay más" en vez de cortar una tarjeta a la mitad.
+   El padding inferior hace que, al llegar al final, la última tarjeta quede completa fuera del desvanecido. */
+.lista-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 1.5rem;
+  padding-right: 0.25rem;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+.lista-scroll::-webkit-scrollbar { width: 6px; }
+.lista-scroll::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 9999px; }

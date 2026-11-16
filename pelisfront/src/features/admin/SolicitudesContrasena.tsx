@@ -78,7 +78,7 @@ export function SolicitudesContrasena({ onError }: Readonly<{ onError: (texto: s
           <h2 className="font-bold text-sm text-amber-200 mb-3">
             🔑 Piden nueva contraseña ({solicitudes.length})
           </h2>
-          <ul className="flex flex-col gap-2 max-h-72 overflow-y-auto sin-scrollbar">
+          <ul className="flex flex-col gap-2 max-h-72 lista-scroll">
             {solicitudes.map((s) => (
               <li key={s.celular} className="flex flex-wrap items-center gap-2 bg-card border border-border rounded-xl p-3">
                 <div className="min-w-0 flex-1">
