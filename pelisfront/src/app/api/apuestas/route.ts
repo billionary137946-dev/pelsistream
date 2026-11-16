@@ -7,36 +7,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/server/db";
 import { ErrorHttp, exigirRol, manejarRuta } from "@/lib/server/auth";
 import { recordarIntento, resultadoDeIntento } from "@/lib/server/dedupe";
+import * as V from "@/lib/server/validar";
 
 export async function POST(request: NextRequest) {
   return manejarRuta(async () => {
     const usuario = await exigirRol(request, "operador");
     const datos = await request.json();
-    const intentoId: string | undefined = datos.intento_id;
+    const intentoId = V.intentoId(datos.intento_id);
 
     const yaProcesado = await resultadoDeIntento(intentoId);
     if (yaProcesado !== null) return NextResponse.json(yaProcesado);
 
-    const evento = String(datos.evento ?? "").trim();
-    const clienteCelular = String(datos.cliente_celular ?? "");
-    const color = String(datos.color ?? "").toLowerCase();
-    const monto = Number(datos.monto ?? 0);
-    const tipo = String(datos.tipo ?? "Apuesta");
+    // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
+    // Evento = "palenque #N" → nombre + espacio para el número.
+    const evento = V.texto(datos.evento, "El nombre del evento", { max: V.LIMITES.nombreEvento + V.LIMITES.numeroJugada + 2 });
+    // Sin exigir 10 dígitos: puede haber clientes viejos; el negocio y que exista se valida abajo.
+    const clienteCelular = V.texto(datos.cliente_celular, "El cliente", { max: 15 });
+    const color = V.unoDe(datos.color, ["rojo", "verde"] as const, "Color (rojo o verde)");
+    // Mismo rango que v2 (operador.html: input apMonto min=500 max=1000000), en pesos enteros.
+    const monto = V.montoApuesta(datos.monto);
+    const tipo = V.unoDe(datos.tipo ?? "Apuesta", ["Apuesta"] as const, "Tipo");
     // Cosméticos (identifican el palenque, no afectan saldo/corretaje) --
     // antes solo vivían en memoria del navegador y se perdían al recargar
     // la página o en otra sesión/dispositivo.
-    const equipoRojo = datos.equipo_rojo ? String(datos.equipo_rojo).trim() || null : null;
-    const equipoVerde = datos.equipo_verde ? String(datos.equipo_verde).trim() || null : null;
-
-    if (color !== "rojo" && color !== "verde") {
-      return NextResponse.json({ detail: "Color inválido (rojo o verde)." }, { status: 400 });
-    }
-    if (!evento) return NextResponse.json({ detail: "Falta el nombre del evento." }, { status: 400 });
-    // Mismo rango que v2 (operador.html: input apMonto min=500 max=1000000,
-    // validado también en JS antes de registrar, no solo al editar).
-    if (!(monto >= 500 && monto <= 1_000_000)) {
-      return NextResponse.json({ detail: "El monto debe ser entre $500 y $1,000,000." }, { status: 400 });
-    }
+    const equipoRojo = V.textoOpcional(datos.equipo_rojo, "Equipo rojo", V.LIMITES.nombreEquipo);
+    const equipoVerde = V.textoOpcional(datos.equipo_verde, "Equipo verde", V.LIMITES.nombreEquipo);
 
     const negocioOperador = usuario.negocio_id;
     if (!negocioOperador) {

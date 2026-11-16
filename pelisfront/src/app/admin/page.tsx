@@ -6,12 +6,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSesion } from "@/lib/useSesion";
-import { soloDigitos, soloNumeroDecimal } from "@/lib/inputs";
-import { api, ErrorApi } from "@/lib/api";
-import { PanelHeader } from "@/components/PanelHeader";
-import { Campo } from "@/components/Campo";
-import { Toast, type DatosToast } from "@/components/Toast";
+import { useSesion } from "@/shared/lib/useSesion";
+import {
+  filtrarAlEscribir,
+  LIMITES,
+  limpiarCelular,
+  limpiarDecimal,
+  limpiarDigitos,
+  limpiarTexto,
+  soloDigitos,
+  soloNumeroDecimal,
+} from "@/shared/lib/inputs";
+import { api, ErrorApi } from "@/shared/lib/api";
+import { PanelHeader } from "@/shared/ui/PanelHeader";
+import { Campo } from "@/shared/ui/Campo";
+import { Toast, type DatosToast } from "@/shared/ui/Toast";
+import { InstalarApp } from "@/shared/ui/InstalarApp";
 
 interface Resumen {
   jugadas: number;
@@ -312,6 +322,8 @@ export default function PanelAdmin() {
       <main className="p-4 max-w-3xl mx-auto">
         {pestana === "inicio" && (
           <>
+            {/* Admin vive más en la compu: aquí es tarjeta con "Ahora no" (igual que el panel del entrenador en HGC). */}
+            <InstalarApp nombre="PeliStreams" className="mb-4" />
             {resumen ? (
               <div className="grid grid-cols-2 gap-3">
                 <TarjetaResumen etiqueta="Jugadas registradas" valor={resumen.jugadas.toString()} />
@@ -600,25 +612,20 @@ function ModalEditarNegocio({
         <div className="flex flex-col gap-3">
           <Campo etiqueta="Máx. operadores">
             <input
-              type="number"
+              type="text"
               inputMode="numeric"
-              min={1}
-              step={1}
               value={maxOperadores}
-              onChange={(e) => setMaxOperadores(e.target.value)}
+              onChange={(e) => setMaxOperadores(limpiarDigitos(e.target.value, 2))}
               onKeyDown={soloDigitos}
               className="campo"
             />
           </Campo>
           <Campo etiqueta="Corretaje %">
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
-              min={0}
-              max={100}
-              step={0.1}
               value={corretajePct}
-              onChange={(e) => setCorretajePct(e.target.value)}
+              onChange={(e) => setCorretajePct(limpiarDecimal(e.target.value, { enteros: 3 }))}
               onKeyDown={soloNumeroDecimal}
               className="campo"
             />
@@ -678,7 +685,12 @@ function ModalEditarUsuario({
 
         <div className="flex flex-col gap-3">
           <Campo etiqueta="Alias">
-            <input value={alias} onChange={(e) => setAlias(e.target.value)} className="campo" />
+            <input
+              value={alias}
+              maxLength={LIMITES.alias}
+              onChange={(e) => setAlias(limpiarTexto(e.target.value, LIMITES.alias))}
+              className="campo"
+            />
           </Campo>
           <Campo etiqueta="Negocio">
             <select value={negocioId} onChange={(e) => setNegocioId(e.target.value)} className="campo">
@@ -692,6 +704,9 @@ function ModalEditarUsuario({
           <Campo etiqueta="Nueva contraseña" ayuda="Déjalo vacío para no cambiarla.">
             <input
               type="password"
+              autoComplete="new-password"
+              minLength={LIMITES.contrasenaMin}
+              maxLength={LIMITES.contrasenaMax}
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
               placeholder="Sin cambios"
@@ -701,22 +716,21 @@ function ModalEditarUsuario({
           {rol === "cliente" && (
             <div className="grid grid-cols-2 gap-3">
               <Campo etiqueta="Saldo">
+                {/* Puede ser negativo (deuda): teclado normal para que el "-" exista también en iPhone. */}
                 <input
-                  type="number"
-                  inputMode="numeric"
+                  type="text"
                   value={saldo}
-                  onChange={(e) => setSaldo(e.target.value)}
+                  onChange={(e) => setSaldo(limpiarDecimal(e.target.value, { negativo: true }))}
                   className="campo"
                 />
               </Campo>
               <Campo etiqueta="Límite crédito">
                 <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
+                  type="text"
+                  inputMode="decimal"
                   value={limiteCredito}
-                  onChange={(e) => setLimiteCredito(e.target.value)}
-                  onKeyDown={soloDigitos}
+                  onChange={(e) => setLimiteCredito(limpiarDecimal(e.target.value))}
+                  onKeyDown={soloNumeroDecimal}
                   className="campo"
                 />
               </Campo>
@@ -802,17 +816,25 @@ function ModalCrearNegocio({
         </div>
         <form onSubmit={onCrear} className="flex flex-col gap-3">
           <Campo etiqueta="Nombre del negocio" ayuda="No se podrá cambiar después de creado.">
-            <input name="nombre" required placeholder="Ej. Palenque Central" className="campo" />
+            <input
+              name="nombre"
+              required
+              minLength={2}
+              maxLength={LIMITES.nombreNegocio}
+              onInput={filtrarAlEscribir((v) => limpiarTexto(v, LIMITES.nombreNegocio))}
+              placeholder="Ej. Palenque Central"
+              className="campo"
+            />
           </Campo>
           <div className="grid grid-cols-2 gap-3">
             <Campo etiqueta="Máx. operadores" ayuda="Cuántos operadores puede tener a la vez.">
               <input
                 name="max_operadores"
-                type="number"
+                type="text"
                 inputMode="numeric"
-                min={1}
-                step={1}
+                required
                 defaultValue={3}
+                onInput={filtrarAlEscribir((v) => limpiarDigitos(v, 2))}
                 onKeyDown={soloDigitos}
                 className="campo"
               />
@@ -820,12 +842,11 @@ function ModalCrearNegocio({
             <Campo etiqueta="Corretaje" ayuda="% que se queda la casa por apuesta ganada.">
               <input
                 name="corretaje_pct"
-                type="number"
+                type="text"
                 inputMode="decimal"
-                min={0}
-                max={100}
-                step={0.1}
+                required
                 defaultValue={10}
+                onInput={filtrarAlEscribir((v) => limpiarDecimal(v, { enteros: 3 }))}
                 onKeyDown={soloNumeroDecimal}
                 className="campo"
               />
@@ -862,7 +883,14 @@ function ModalCrearUsuario({
         </div>
         <form onSubmit={(e) => onCrear(rol, e)} className="flex flex-col gap-3">
           <Campo etiqueta="Alias" ayuda="Nombre con el que se le va a identificar en el sistema.">
-            <input name="alias" required placeholder="Ej. Juan Pérez" className="campo" />
+            <input
+              name="alias"
+              required
+              maxLength={LIMITES.alias}
+              onInput={filtrarAlEscribir((v) => limpiarTexto(v, LIMITES.alias))}
+              placeholder="Ej. Juan Pérez"
+              className="campo"
+            />
           </Campo>
           <Campo etiqueta="Celular" ayuda="Es lo que usa para iniciar sesión, como usuario.">
             <input
@@ -870,13 +898,26 @@ function ModalCrearUsuario({
               type="tel"
               inputMode="numeric"
               required
+              minLength={LIMITES.celular}
+              pattern="\d{10}"
+              title="10 dígitos, solo números"
+              onInput={filtrarAlEscribir(limpiarCelular)}
               onKeyDown={soloDigitos}
               placeholder="10 dígitos"
               className="campo"
             />
           </Campo>
           <Campo etiqueta="Contraseña">
-            <input name="contrasena" required type="password" placeholder="Mínimo recomendado: 8 caracteres" className="campo" />
+            <input
+              name="contrasena"
+              required
+              type="password"
+              autoComplete="new-password"
+              minLength={LIMITES.contrasenaMin}
+              maxLength={LIMITES.contrasenaMax}
+              placeholder={`Mínimo ${LIMITES.contrasenaMin} caracteres`}
+              className="campo"
+            />
           </Campo>
           <Campo etiqueta="Negocio al que pertenece">
             <select name="negocio_id" required className="campo">

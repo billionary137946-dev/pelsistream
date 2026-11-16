@@ -65,6 +65,10 @@ export function manejarRuta(fn: () => Promise<NextResponse>): Promise<NextRespon
     if (e instanceof ErrorHttp) {
       return NextResponse.json({ detail: e.message }, { status: e.status });
     }
+    // Cuerpo que no es JSON (petición hecha a mano o rota): es error de quien la manda, no del servidor.
+    if (e instanceof SyntaxError) {
+      return NextResponse.json({ detail: "Datos inválidos." }, { status: 400 });
+    }
     console.error(e);
     return NextResponse.json({ detail: "Error interno del servidor." }, { status: 500 });
   });

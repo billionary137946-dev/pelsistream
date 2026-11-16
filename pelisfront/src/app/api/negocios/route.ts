@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/server/db";
 import { exigirRol, manejarRuta } from "@/lib/server/auth";
+import * as V from "@/lib/server/validar";
+// creado_por siempre es el admin de la sesión (antes se aceptaba del navegador y se podía falsear).
 
 const LIMITE_NEGOCIOS_ACTIVOS = 5;
 
@@ -23,19 +25,10 @@ export async function POST(request: NextRequest) {
   return manejarRuta(async () => {
     const usuario = await exigirRol(request, "admin");
     const datos = await request.json();
-    const nombre = String(datos.nombre ?? "").trim();
-    const maxOperadores = Number(datos.max_operadores ?? 3);
-    const corretajePct = Number(datos.corretaje_pct ?? 10);
-
-    if (!nombre) {
-      return NextResponse.json({ detail: "El nombre del negocio es obligatorio." }, { status: 400 });
-    }
-    if (!(corretajePct >= 0 && corretajePct <= 100)) {
-      return NextResponse.json(
-        { detail: "El corretaje debe ser un porcentaje entre 0 y 100." },
-        { status: 400 },
-      );
-    }
+    // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
+    const nombre = V.texto(datos.nombre, "El nombre del negocio", { min: 2, max: V.LIMITES.nombreNegocio });
+    const maxOperadores = V.entero(datos.max_operadores ?? 3, "Máx. operadores", 1, V.LIMITES.maxOperadores);
+    const corretajePct = V.porcentaje(datos.corretaje_pct ?? 10, "El corretaje");
 
     const yaExiste = await sql`
       select 1 from negocios where lower(nombre) = lower(${nombre})
@@ -56,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const [fila] = await sql`
       insert into negocios (nombre, activo, max_operadores, corretaje_pct, creado_por)
-      values (${nombre}, true, ${maxOperadores}, ${corretajePct}, ${datos.creado_por || usuario.celular})
+      values (${nombre}, true, ${maxOperadores}, ${corretajePct}, ${usuario.celular})
       returning nombre, activo, max_operadores, corretaje_pct::float8, fecha_creacion::text, creado_por
     `;
     return NextResponse.json(fila, { status: 201 });

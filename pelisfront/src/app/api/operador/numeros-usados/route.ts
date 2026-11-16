@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   return manejarRuta(async () => {
     const usuario = await exigirRol(request, "operador");
     const nombrePalenque = (request.nextUrl.searchParams.get("nombre_palenque") ?? "").trim();
-    if (!nombrePalenque) return NextResponse.json({ numeros: [] });
+    // Vacío o más largo que cualquier nombre válido: no hay nada que buscar.
+    if (!nombrePalenque || nombrePalenque.length > 80) return NextResponse.json({ numeros: [] });
 
     const filas = await sql`
       select distinct j.evento from jugadas j

@@ -2,7 +2,7 @@
 // de Next.js) -- se muestra cuando la ruta no existe (link viejo, typo en la
 // URL, etc.).
 import Link from "next/link";
-import { LogoPeli } from "@/components/LogoPeli";
+import { LogoPeli } from "@/shared/ui/LogoPeli";
 
 export default function NoEncontrado() {
   return (

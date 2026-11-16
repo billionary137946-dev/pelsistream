@@ -4,13 +4,14 @@
 // (grande, ancho completo) — ver funcionamiento.txt, sección 9-c.
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { api, ErrorApi } from "@/lib/api";
-import { guardarSesion, rutaDeInicio, type DatosSesion } from "@/lib/sesion";
-import { FondoAuth } from "@/components/FondoAuth";
-import { LogoPeli } from "@/components/LogoPeli";
-import { soloDigitos } from "@/lib/inputs";
+import { api, ErrorApi } from "@/shared/lib/api";
+import { guardarSesion, leerSesion, rutaDeInicio, type DatosSesion } from "@/shared/lib/sesion";
+import { FondoAuth } from "@/shared/ui/FondoAuth";
+import { InstalarApp } from "@/shared/ui/InstalarApp";
+import { LogoPeli } from "@/shared/ui/LogoPeli";
+import { LIMITES, limpiarCelular, soloDigitos } from "@/shared/lib/inputs";
 
 export function LoginForm() {
   const router = useRouter();
@@ -20,6 +21,13 @@ export function LoginForm() {
   const [cargando, setCargando] = useState(false);
   const [conexionLenta, setConexionLenta] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // App instalada: abre en /login. Si ya hay sesión guardada, va directo a su panel
+  // (el panel la revalida contra el servidor con useSesion; si ya no sirve, regresa aquí).
+  useEffect(() => {
+    const guardada = leerSesion();
+    if (guardada?.token) router.replace(rutaDeInicio(guardada.rol));
+  }, [router]);
 
   async function iniciarSesion(evento: FormEvent) {
     evento.preventDefault();
@@ -49,12 +57,14 @@ export function LoginForm() {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center p-5 relative overflow-x-hidden isolate">
       <FondoAuth />
+      {/* Antes de entrar: en celular primero se instala la app (igual que HGC; ver shared/ui/InstalarApp.tsx). */}
+      <InstalarApp nombre="PeliStreams" forma="pantalla" />
 
       <div className="w-full max-w-sm animate-tarjeta">
         <div className="text-center mb-8 flex flex-col items-center">
           <LogoPeli tamano="lg" />
           <h1 className="font-display text-gold text-[clamp(1.5rem,5vw,2rem)] tracking-[3px] leading-none mt-2">
-            Peli Streams
+            PeliStreams
           </h1>
         </div>
 
@@ -69,8 +79,9 @@ export function LoginForm() {
               inputMode="numeric"
               required
               autoFocus
+              autoComplete="username"
               value={celular}
-              onChange={(e) => setCelular(e.target.value)}
+              onChange={(e) => setCelular(limpiarCelular(e.target.value))}
               onKeyDown={soloDigitos}
               placeholder="10 dígitos"
               className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-[clamp(11px,3vw,14px)] font-bold outline-none transition-colors placeholder:text-white/25 placeholder:font-normal focus:border-gold focus:bg-gold/5 focus:ring-4 focus:ring-gold/10"
@@ -83,6 +94,8 @@ export function LoginForm() {
               <input
                 type={mostrarContrasena ? "text" : "password"}
                 required
+                autoComplete="current-password"
+                maxLength={LIMITES.contrasenaMax}
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
                 placeholder="Tu contraseña"
@@ -91,7 +104,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setMostrarContrasena((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-white/30 hover:text-gold transition-colors p-1 leading-none"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 grid place-items-center size-10 rounded-full text-lg text-white/30 hover:text-gold transition-colors leading-none"
                 aria-label={mostrarContrasena ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 👁️

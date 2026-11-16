@@ -7,6 +7,7 @@ import "server-only";
 import { sql } from "@/lib/server/db";
 import { ErrorHttp } from "@/lib/server/auth";
 import { hashearContrasena } from "@/lib/server/seguridad";
+import * as V from "@/lib/server/validar";
 
 // ::float8 es importante: postgres.js devuelve columnas "numeric" como
 // STRING por default (para no perder precisión), a diferencia de psycopg
@@ -32,13 +33,14 @@ interface DatosCrearUsuario {
 }
 
 export async function crearUsuario(datos: DatosCrearUsuario, rolFijo: "operador" | "cliente") {
-  const celular = String(datos.celular ?? "").replace(/\D/g, "");
-  const contrasena = String(datos.contrasena ?? "");
-  const alias = String(datos.alias ?? "").trim();
-  const negocioId = String(datos.negocio_id ?? "");
-
-  if (!celular || !contrasena) throw new ErrorHttp(400, "Celular y contraseña son obligatorios.");
-  if (!negocioId) throw new ErrorHttp(400, "Selecciona un negocio.");
+  // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
+  const celular = V.celular(datos.celular);
+  const contrasena = V.contrasenaNueva(datos.contrasena);
+  const alias = V.texto(datos.alias, "El alias", { max: V.LIMITES.alias });
+  if (!datos.negocio_id) throw new ErrorHttp(400, "Selecciona un negocio.");
+  const negocioId = V.texto(datos.negocio_id, "El negocio", { max: V.LIMITES.nombreNegocio });
+  const saldo = rolFijo === "cliente" ? V.dinero(datos.saldo ?? 0, "El saldo", -V.LIMITES.dineroMax, V.LIMITES.dineroMax) : 0;
+  const limiteCredito = rolFijo === "cliente" ? V.dinero(datos.limite_credito ?? 0, "El límite de crédito", 0, V.LIMITES.dineroMax) : 0;
 
   return sql.begin(async (tx) => {
     const existente = await tx`select 1 from usuarios where celular = ${celular}`;
@@ -57,9 +59,6 @@ export async function crearUsuario(datos: DatosCrearUsuario, rolFijo: "operador"
         }
       }
     }
-
-    const saldo = rolFijo === "cliente" ? Number(datos.saldo ?? 0) : 0;
-    const limiteCredito = rolFijo === "cliente" ? Number(datos.limite_credito ?? 0) : 0;
 
     const [fila] = await tx`
       insert into usuarios (celular, contrasena_hash, rol, alias, saldo, limite_credito, negocio_id, estatus)
@@ -80,12 +79,16 @@ interface DatosEditarUsuario {
 }
 
 export async function editarUsuario(celular: string, datos: DatosEditarUsuario, rolFijo: "operador" | "cliente") {
-  const alias = String(datos.alias ?? "").trim();
-  const negocioId = String(datos.negocio_id ?? "");
+  const alias = V.texto(datos.alias, "El alias", { max: V.LIMITES.alias });
+  if (!datos.negocio_id) throw new ErrorHttp(400, "Selecciona un negocio.");
+  const negocioId = V.texto(datos.negocio_id, "El negocio", { max: V.LIMITES.nombreNegocio });
   const estatus = datos.estatus === "inactivo" ? "inactivo" : "activo";
-
-  if (!alias) throw new ErrorHttp(400, "El alias es obligatorio.");
-  if (!negocioId) throw new ErrorHttp(400, "Selecciona un negocio.");
+  // Contraseña solo si se quiere cambiar (vacía = se deja la actual).
+  const contrasenaNueva = datos.contrasena ? V.contrasenaNueva(datos.contrasena) : null;
+  const saldoNuevo =
+    rolFijo === "cliente" ? V.dinero(datos.saldo ?? 0, "El saldo", -V.LIMITES.dineroMax, V.LIMITES.dineroMax) : null;
+  const limiteNuevo =
+    rolFijo === "cliente" ? V.dinero(datos.limite_credito ?? 0, "El límite de crédito", 0, V.LIMITES.dineroMax) : null;
 
   return sql.begin(async (tx) => {
     const [actual] = await tx`select rol from usuarios where celular = ${celular} for update`;
@@ -93,9 +96,9 @@ export async function editarUsuario(celular: string, datos: DatosEditarUsuario, 
       throw new ErrorHttp(404, `${rolFijo === "operador" ? "Operador" : "Cliente"} no encontrado.`);
     }
 
-    const contrasenaHash = datos.contrasena ? await hashearContrasena(datos.contrasena) : null;
-    const saldo = rolFijo === "cliente" ? Number(datos.saldo ?? 0) : null;
-    const limiteCredito = rolFijo === "cliente" ? Number(datos.limite_credito ?? 0) : null;
+    const contrasenaHash = contrasenaNueva ? await hashearContrasena(contrasenaNueva) : null;
+    const saldo = saldoNuevo;
+    const limiteCredito = limiteNuevo;
 
     const [fila] = await tx`
       update usuarios set

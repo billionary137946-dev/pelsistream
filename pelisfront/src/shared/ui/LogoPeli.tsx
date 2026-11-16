@@ -1,4 +1,4 @@
-// Logo real de Peli Streams (extraído de v.2/login.html, que lo traía
+// Logo real de PeliStreams (extraído de v.2/login.html, que lo traía
 // embebido en base64 dentro de un <img> -- ver pelisfront/public/icons/).
 // Mismo uso que en v2: grande y centrado en login/registro, chico dentro de
 // un círculo en el header de admin/operador/cliente. Tamaños en clamp()
@@ -18,7 +18,7 @@ export function LogoPeli({ tamano = "lg" }: { tamano?: keyof typeof CLASES_TAMAN
     <div className={`animate-logo rounded-full overflow-hidden flex-shrink-0 ${CLASES_TAMANO[tamano]}`}>
       <Image
         src="/icons/icon-192.png"
-        alt="Peli Streams"
+        alt="PeliStreams"
         width={192}
         height={192}
         className="h-full w-full object-cover"

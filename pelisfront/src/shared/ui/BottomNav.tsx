@@ -22,6 +22,8 @@ export function BottomNav({
 }) {
   return (
     <nav
+      data-guia="menu"
+      aria-label="Menú"
       className="fixed bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-md border-t border-border flex pb-[env(safe-area-inset-bottom)]"
       style={{ boxShadow: "0 -2px 16px rgba(0,0,0,.25)" }}
     >

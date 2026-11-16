@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/server/db";
 import { ErrorHttp, exigirRol, manejarRuta } from "@/lib/server/auth";
+import * as V from "@/lib/server/validar";
 
 const LIMITE_NEGOCIOS_ACTIVOS = 5;
 
@@ -12,16 +13,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await exigirRol(request, "admin");
     const { nombre } = await params;
     const datos = await request.json();
-    const activo = Boolean(datos.activo);
-    const maxOperadores = Number(datos.max_operadores);
-    const corretajePct = Number(datos.corretaje_pct);
-
-    if (!(corretajePct >= 0 && corretajePct <= 100)) {
-      return NextResponse.json(
-        { detail: "El corretaje debe ser un porcentaje entre 0 y 100." },
-        { status: 400 },
-      );
+    if (typeof datos.activo !== "boolean") {
+      return NextResponse.json({ detail: "Activo: dato inválido." }, { status: 400 });
     }
+    const activo = datos.activo;
+    const maxOperadores = V.entero(datos.max_operadores, "Máx. operadores", 1, V.LIMITES.maxOperadores);
+    const corretajePct = V.porcentaje(datos.corretaje_pct, "El corretaje");
 
     const fila = await sql.begin(async (tx) => {
       const [actual] = await tx`

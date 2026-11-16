@@ -8,6 +8,7 @@ import { sql } from "@/lib/server/db";
 import { exigirRol, manejarRuta } from "@/lib/server/auth";
 import { corretajePctDe } from "@/lib/server/apuestas";
 import { recordarIntento, resultadoDeIntento } from "@/lib/server/dedupe";
+import * as V from "@/lib/server/validar";
 
 const TIPOS_QUINIELA = ["Ventaja", "Quiniela", "Mano a mano", "Pares y nones"];
 
@@ -23,26 +24,30 @@ export async function POST(request: NextRequest) {
   return manejarRuta(async () => {
     const usuario = await exigirRol(request, "operador");
     const datos = await request.json();
-    const intentoId: string | undefined = datos.intento_id;
+    const intentoId = V.intentoId(datos.intento_id);
 
     const yaProcesado = await resultadoDeIntento(intentoId);
     if (yaProcesado !== null) return NextResponse.json(yaProcesado);
 
-    const nombreQuiniela = String(datos.nombre ?? "").trim();
+    // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
+    const nombreQuiniela = V.texto(datos.nombre, "El nombre de la quiniela", { max: V.LIMITES.nombreEvento });
     let subTipo = String(datos.sub_tipo ?? "Quiniela");
     if (!TIPOS_QUINIELA.includes(subTipo)) subTipo = "Quiniela";
-    const montoLugar = Number(datos.monto_lugar ?? 0);
-    const apostadores: Apostador[] = datos.apostadores ?? [];
-
-    if (!nombreQuiniela) {
-      return NextResponse.json({ detail: "Falta el nombre de la quiniela." }, { status: 400 });
-    }
-    if (!(montoLugar > 0)) {
-      return NextResponse.json({ detail: "El monto por lugar debe ser mayor a 0." }, { status: 400 });
-    }
-    if (apostadores.length === 0) {
+    // Mismo rango que la pantalla y que una apuesta: $500 a $1,000,000, pesos enteros.
+    const montoLugar = V.montoApuesta(datos.monto_lugar, "El monto por lugar");
+    if (!Array.isArray(datos.apostadores) || datos.apostadores.length === 0) {
       return NextResponse.json({ detail: "Agrega al menos un apostador." }, { status: 400 });
     }
+    if (datos.apostadores.length > V.LIMITES.apostadoresMax) {
+      return NextResponse.json({ detail: `Máximo ${V.LIMITES.apostadoresMax} apostadores por quiniela.` }, { status: 400 });
+    }
+    const apostadores: Apostador[] = (datos.apostadores as Record<string, unknown>[]).map((a, i) => ({
+      nombre: V.texto(a?.nombre, `Apostador ${i + 1}: nombre`, { max: V.LIMITES.nombreApostador }),
+      lugar: String(V.entero(a?.lugar, `Apostador ${i + 1}: lugar`, 1, V.LIMITES.apostadoresMax)),
+      ganador: a?.ganador === true,
+      pts: a?.pts === undefined || a?.pts === "" ? "" : String(V.entero(a.pts, `Apostador ${i + 1}: puntos`, 0, 999)),
+      carta: V.textoOpcional(a?.carta, `Apostador ${i + 1}: carta`, V.LIMITES.carta) ?? "",
+    }));
     const negocioId = usuario.negocio_id;
     if (!negocioId) {
       return NextResponse.json({ detail: "No se pudo identificar tu negocio." }, { status: 400 });

@@ -85,6 +85,8 @@ async function peticion<T>(
       localStorage.removeItem("token");
       localStorage.removeItem("sesion");
       if (!window.location.pathname.startsWith("/login")) {
+        // Fuera de React no hay router: recarga completa a propósito para limpiar todo el estado.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = "/login";
       }
     }

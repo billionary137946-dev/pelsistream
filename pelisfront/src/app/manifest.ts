@@ -1,25 +1,30 @@
 import type { MetadataRoute } from "next";
 
-// PWA instalable (ver v.2/funcionamiento.txt, sección 9-a): operador y
-// cliente pueden "instalar" la app desde el navegador sin pasar por una
-// tienda de apps. Íconos extraídos del logo real de v2 (v.2/login.html
-// tenía el logo embebido en base64 dentro de un <img>) -- recortados al
-// símbolo cuadrado (carta/corona/dados) que ya usaba login.html dentro de
-// su círculo de 90x90, generados en todos los tamaños que pide un manifest.
+// PWA instalable (misma configuración que HGC): operador, cliente y admin la instalan desde el navegador
+// sin pasar por una tienda de apps. La pantalla "Instala la app" vive en shared/ui/InstalarApp.tsx.
+// Íconos extraídos del logo real de v2 (v.2/login.html). icon-maskable-512 = el logo al 80% sobre navy,
+// para que Android lo recorte en círculo/gota sin cortar la corona ni los dados.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Peli Streams",
-    short_name: "Peli Streams",
+    name: "PeliStreams",
+    short_name: "PeliStreams",
     description: "Sistema de apuestas — palenques y quinielas",
+    id: "/",
+    // Abre en /login: si ya hay sesión, el login manda directo al panel de cada rol.
     start_url: "/login",
+    scope: "/",
     display: "standalone",
+    orientation: "portrait-primary",
     background_color: "#050d24",
     theme_color: "#050d24",
+    lang: "es-MX",
+    categories: ["entertainment", "finance"],
     icons: [
-      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icons/icon-256.png", sizes: "256x256", type: "image/png" },
-      { src: "/icons/icon-384.png", sizes: "384x384", type: "image/png" },
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-256.png", sizes: "256x256", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-384.png", sizes: "384x384", type: "image/png", purpose: "any" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

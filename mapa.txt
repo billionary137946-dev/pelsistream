@@ -1,0 +1,43 @@
+PELI STREAMS — MAPA (estado en tiempo real)
+Actualizado: 2026-11-16
+
+== AHORA ==
+Fase actual:  2 — Orden del código + app instalable
+En curso:     reorganizar en capas app → features → shared (cliente y auth ✅ · admin y operador pendientes)
+Siguiente:
+  1. Pasar admin y operador a features/ + su recorrido de ayuda (textos ya escritos en shared/guia/recorridos.ts)
+  2. Probar en celular real: instalar (Android Chrome y iPhone Safari) + recorrido de ayuda
+  3. Commit + push → Vercel (y confirmar variables DATABASE_URL, JWT_SECRETO, JWT_HORAS_EXPIRACION)
+Bloqueos:     ninguno
+
+== SEMÁFORO ==
+🟢 Login celular+contraseña (bcrypt + JWT); si ya hay sesión manda directo al panel
+🟢 Admin: resumen, negocios, operadores, clientes, historial, ganancias por negocio
+🟢 Operador: 5 slots en paralelo, apuesta y quiniela, cerrar evento, historial, editar apuesta pendiente
+🟢 Cliente: saldo (polling 5s) + historial + recorrido de ayuda
+🟢 Registro público ?negocio=NOMBRE
+🟢 PWA como HGC: manifest + ícono maskable + sw.js + pantalla "Instala la app" + aviso "Actualizar"
+🟢 Encabezados de seguridad (CSP, X-Frame, HSTS) como HGC
+🟢 BD Supabase: 3 migraciones aplicadas, RLS activado sin policies (solo backend)
+🟡 Ayuda (recorridos): lista en cliente; admin y operador tienen los textos pero falta marcar sus pantallas
+🔴 Gráfica de corretaje del admin (sin serie temporal ni UI)
+🔴 Rate-limit en login · tabla de auditoría · tests automatizados
+🔴 Offline (encolar apuestas sin señal): sw.js no guarda caché a propósito
+
+== RIESGOS ==
+- Dinero sin tests automatizados (saldo/corretaje/empate solo probados a mano con curl).
+- Login sin rate-limit → fuerza bruta posible.
+- Rotar JWT_SECRETO antes de producción real.
+- Instalación obligatoria en celular (operador/cliente): probar en iPhone y Android antes de publicar.
+
+== DÓNDE ESTÁ CADA COSA (pelisfront/src) ==
+Rutas          app/{login,registro,admin,operador,cliente}/page.tsx  (delgadas: solo arman la feature)
+Features       features/{auth,cliente}/  (admin y operador aún viven en su page.tsx)
+UI base        shared/ui/ (Modal, Cargando, Campo, Toast, BottomNav, PanelHeader, InstalarApp, AvisoActualizar…)
+Lógica front   shared/lib/ (api, sesion, useSesion, inputs, formato, pwa)
+Ayuda          shared/guia/ (Recorrido.tsx copiado de HGC · recorridos.ts = TODOS los textos)
+API            app/api/**/route.ts   ·  Lógica server  lib/server/
+PWA            app/manifest.ts · public/sw.js · public/icons/ · app/api/version
+Tokens         app/globals.css
+Migraciones    supabase/migrations/
+Detalle largo  MAPA_GLOBAL.md (local, no se sube; ojo: dice que slots y quinielas no existen, ya existen)

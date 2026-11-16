@@ -15,13 +15,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSesion } from "@/lib/useSesion";
-import { api, ErrorApi } from "@/lib/api";
-import { PanelHeader } from "@/components/PanelHeader";
-import { BottomNav } from "@/components/BottomNav";
-import { Campo } from "@/components/Campo";
-import { Toast, type DatosToast } from "@/components/Toast";
-import { soloDigitos } from "@/lib/inputs";
+import { useSesion } from "@/shared/lib/useSesion";
+import { api, ErrorApi } from "@/shared/lib/api";
+import { PanelHeader } from "@/shared/ui/PanelHeader";
+import { BottomNav } from "@/shared/ui/BottomNav";
+import { Campo } from "@/shared/ui/Campo";
+import { Toast, type DatosToast } from "@/shared/ui/Toast";
+import { LIMITES, limpiarDigitos, limpiarTexto, soloDigitos } from "@/shared/lib/inputs";
+import { InstalarApp } from "@/shared/ui/InstalarApp";
 
 interface ClienteBusqueda {
   celular: string;
@@ -137,7 +138,8 @@ export default function PanelOperador() {
   const [enviando, setEnviando] = useState(false);
   const [conexionLenta, setConexionLenta] = useState(false);
   const [mensaje, setMensaje] = useState<DatosToast | null>(null);
-  const [numeroRepetido, setNumeroRepetido] = useState(false);
+  // Números de palenque ya usados, por nombre de palenque (para avisar si se repite).
+  const [numerosUsados, setNumerosUsados] = useState<{ nombre: string; numeros: string[] } | null>(null);
   const [jugadaError, setJugadaError] = useState("");
 
   // ── Slots en paralelo ──
@@ -252,31 +254,32 @@ export default function PanelOperador() {
 
   // Valida el número de palenque en cuanto el operador termina de escribir
   // nombre + número -- con debounce para no pegarle al backend en cada tecla.
+  const nombrePalenque = slotActivoObj.nombre.trim();
+  const numeroPalenque = slotActivoObj.numJugada.trim();
+  const esApuesta = slotActivoObj.tipo === "Apuesta";
+  // Derivado (no estado): solo cuenta si la lista consultada es del palenque que se está escribiendo.
+  const numeroRepetido =
+    esApuesta &&
+    nombrePalenque !== "" &&
+    numeroPalenque !== "" &&
+    numerosUsados?.nombre === nombrePalenque &&
+    numerosUsados.numeros.includes(numeroPalenque);
+
   useEffect(() => {
-    if (slotActivoObj.tipo !== "Apuesta") {
-      setNumeroRepetido(false);
-      return;
-    }
-    const nombre = slotActivoObj.nombre.trim();
-    const numero = slotActivoObj.numJugada.trim();
-    if (!nombre || !numero) {
-      setNumeroRepetido(false);
-      return;
-    }
+    if (!esApuesta || !nombrePalenque || !numeroPalenque) return;
     const temporizador = setTimeout(async () => {
       try {
         const r = await api.get<{ numeros: string[] }>(
-          `/operador/numeros-usados?nombre_palenque=${encodeURIComponent(nombre)}`,
+          `/operador/numeros-usados?nombre_palenque=${encodeURIComponent(nombrePalenque)}`,
         );
-        setNumeroRepetido(r.numeros.includes(numero));
+        setNumerosUsados({ nombre: nombrePalenque, numeros: r.numeros });
       } catch {
         // si falla la validación, no bloquea el flujo -- el backend igual
         // no impide registrar, esto es solo un aviso preventivo
       }
     }, 400);
     return () => clearTimeout(temporizador);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotActivoObj.tipo, slotActivoObj.nombre, slotActivoObj.numJugada]);
+  }, [esApuesta, nombrePalenque, numeroPalenque]);
 
   // Coordina la barra de slots con la realidad del backend: un palenque
   // abierto en otra sesión (u olvidado tras recargar la página, ya que los
@@ -285,6 +288,8 @@ export default function PanelOperador() {
   // huérfano en el primer slot realmente vacío (sin iniciar y sin texto sin
   // guardar) para no pisar lo que el operador esté escribiendo.
   useEffect(() => {
+    // Sincroniza con datos externos (eventos del backend); el updater funcional evita pisar lo que se escribe.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSlots((prevSlots) => {
       const nuevos = [...prevSlots];
       const revelar: number[] = [];
@@ -708,18 +713,18 @@ export default function PanelOperador() {
                       <Campo etiqueta="Nombre del palenque">
                         <input
                           value={slotActivoObj.nombre}
-                          onChange={(e) => actualizarSlotActivo({ nombre: e.target.value })}
+                          maxLength={LIMITES.nombreEvento}
+                          onChange={(e) => actualizarSlotActivo({ nombre: limpiarTexto(e.target.value, LIMITES.nombreEvento) })}
                           placeholder="Ej. Corrida principal"
                           className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
                         />
                       </Campo>
                       <Campo etiqueta="N# Jugada">
                         <input
-                          type="number"
+                          type="text"
                           inputMode="numeric"
-                          min={1}
                           value={slotActivoObj.numJugada}
-                          onChange={(e) => actualizarSlotActivo({ numJugada: e.target.value })}
+                          onChange={(e) => actualizarSlotActivo({ numJugada: limpiarDigitos(e.target.value, LIMITES.numeroJugada) })}
                           onKeyDown={soloDigitos}
                           placeholder="1"
                           className={`w-16 py-3 px-3 bg-white/[.06] border-2 rounded-xl font-bold text-center outline-none placeholder:text-white/25 focus:border-gold ${
@@ -764,7 +769,11 @@ export default function PanelOperador() {
                           </div>
                           <input
                             value={valor}
-                            onChange={(e) => actualizarSlotActivo(color === "rojo" ? { rojo: e.target.value } : { verde: e.target.value })}
+                            maxLength={LIMITES.nombreEquipo}
+                            onChange={(e) => {
+                              const v = limpiarTexto(e.target.value, LIMITES.nombreEquipo);
+                              actualizarSlotActivo(color === "rojo" ? { rojo: v } : { verde: v });
+                            }}
                             placeholder="Nombre equipo"
                             className="w-full bg-transparent outline-none font-bold placeholder:text-white/25 placeholder:font-normal"
                           />
@@ -793,7 +802,8 @@ export default function PanelOperador() {
                     <Campo etiqueta="Nombre de quiniela">
                       <input
                         value={slotActivoObj.nombre}
-                        onChange={(e) => actualizarSlotActivo({ nombre: e.target.value })}
+                        maxLength={LIMITES.nombreEvento}
+                        onChange={(e) => actualizarSlotActivo({ nombre: limpiarTexto(e.target.value, LIMITES.nombreEvento) })}
                         placeholder="Ej. 24 de Mayo Huamantla"
                         className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
                       />
@@ -801,12 +811,10 @@ export default function PanelOperador() {
                     <div className="grid grid-cols-[1fr_auto] gap-3">
                       <Campo etiqueta="Monto por lugar" ayuda="$500–$1,000,000">
                         <input
-                          type="number"
+                          type="text"
                           inputMode="numeric"
-                          min={500}
-                          max={1_000_000}
                           value={slotActivoObj.montoLugar}
-                          onChange={(e) => actualizarSlotActivo({ montoLugar: e.target.value })}
+                          onChange={(e) => actualizarSlotActivo({ montoLugar: limpiarDigitos(e.target.value, 7) })}
                           onKeyDown={soloDigitos}
                           placeholder="500"
                           className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
@@ -814,11 +822,10 @@ export default function PanelOperador() {
                       </Campo>
                       <Campo etiqueta="Lugares">
                         <input
-                          type="number"
+                          type="text"
                           inputMode="numeric"
-                          min={1}
                           value={slotActivoObj.lugares}
-                          onChange={(e) => actualizarSlotActivo({ lugares: e.target.value })}
+                          onChange={(e) => actualizarSlotActivo({ lugares: limpiarDigitos(e.target.value, LIMITES.lugares) })}
                           onKeyDown={soloDigitos}
                           placeholder="20"
                           className="w-16 py-3 px-3 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold text-center outline-none placeholder:text-white/25 focus:border-gold"
@@ -857,9 +864,10 @@ export default function PanelOperador() {
                   <div className="relative">
                     <input
                       value={clienteElegido ? clienteElegido.alias : busqueda}
+                      maxLength={LIMITES.alias}
                       onChange={(e) => {
                         setClienteElegido(null);
-                        setBusqueda(e.target.value);
+                        setBusqueda(limpiarTexto(e.target.value, LIMITES.alias));
                       }}
                       placeholder="Buscar por alias o celular…"
                       className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
@@ -892,12 +900,10 @@ export default function PanelOperador() {
 
                 <Campo etiqueta="Monto" ayuda="mín. $500 · máx. $1,000,000">
                   <input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
-                    min={500}
-                    max={1_000_000}
                     value={monto}
-                    onChange={(e) => setMonto(e.target.value)}
+                    onChange={(e) => setMonto(limpiarDigitos(e.target.value, 7))}
                     onKeyDown={soloDigitos}
                     placeholder="500.00"
                     className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
@@ -963,15 +969,17 @@ export default function PanelOperador() {
                 {slotActivoObj.subTipoQuiniela === "Pares y nones" && (
                   <div className="grid grid-cols-2 gap-2">
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       value={apostadorPts}
-                      onChange={(e) => setApostadorPts(e.target.value)}
+                      onChange={(e) => setApostadorPts(limpiarDigitos(e.target.value, LIMITES.puntos))}
                       placeholder="Puntos"
                       className="w-full py-2.5 px-3 bg-white/[.06] border-2 border-border rounded-xl font-bold outline-none focus:border-gold"
                     />
                     <input
                       value={apostadorCarta}
-                      onChange={(e) => setApostadorCarta(e.target.value)}
+                      maxLength={LIMITES.carta}
+                      onChange={(e) => setApostadorCarta(limpiarTexto(e.target.value, LIMITES.carta))}
                       placeholder="Carta"
                       className="w-full py-2.5 px-3 bg-white/[.06] border-2 border-border rounded-xl font-bold outline-none focus:border-gold"
                     />
@@ -981,7 +989,8 @@ export default function PanelOperador() {
                 <div className="flex gap-2">
                   <input
                     value={apostadorNombre}
-                    onChange={(e) => setApostadorNombre(e.target.value)}
+                    maxLength={LIMITES.nombreApostador}
+                    onChange={(e) => setApostadorNombre(limpiarTexto(e.target.value, LIMITES.nombreApostador))}
                     onKeyDown={(e) => e.key === "Enter" && agregarApostador()}
                     placeholder="Nombre del apostador"
                     className="flex-1 py-2.5 px-3 bg-white/[.06] border-2 border-border rounded-xl font-bold outline-none focus:border-gold"
@@ -1203,6 +1212,9 @@ export default function PanelOperador() {
           onGuardar={guardarEdicion}
         />
       )}
+
+      {/* En el palenque se trabaja desde el celular: igual que HGC, en celular se pide instalarla. */}
+      <InstalarApp nombre="PeliStreams" forma="pantalla" />
     </div>
   );
 }
@@ -1461,10 +1473,10 @@ function ModalEditarApuesta({
 
         <label className="block text-xs text-white/50 mb-1.5 font-bold">Monto ($500–$1,000,000)</label>
         <input
-          type="number"
+          type="text"
           inputMode="numeric"
           value={monto}
-          onChange={(e) => setMonto(e.target.value)}
+          onChange={(e) => setMonto(limpiarDigitos(e.target.value, 7))}
           onKeyDown={soloDigitos}
           className="w-full py-3 px-4 mb-3 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none focus:border-gold"
         />

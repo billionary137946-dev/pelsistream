@@ -5,24 +5,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/server/db";
 import { manejarRuta } from "@/lib/server/auth";
 import { hashearContrasena } from "@/lib/server/seguridad";
+import * as V from "@/lib/server/validar";
 
 export async function POST(request: NextRequest) {
   return manejarRuta(async () => {
     const datos = await request.json();
-    const negocioId = String(datos.negocio_id ?? "");
-    const alias = String(datos.alias ?? "").trim();
-    const celular = String(datos.celular ?? "").replace(/\D/g, "");
-    const contrasena = String(datos.contrasena ?? "");
-
-    if (!negocioId) {
+    if (!datos.negocio_id) {
       return NextResponse.json(
         { detail: "Falta el negocio. Pide al administrador un link válido." },
         { status: 400 },
       );
     }
-    if (!alias || !celular || !contrasena) {
-      return NextResponse.json({ detail: "Completa todos los campos." }, { status: 400 });
-    }
+    // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
+    const negocioId = V.texto(datos.negocio_id, "El negocio", { max: V.LIMITES.nombreNegocio });
+    const alias = V.texto(datos.alias, "El alias", { max: V.LIMITES.alias });
+    const celular = V.celular(datos.celular);
+    const contrasena = V.contrasenaNueva(datos.contrasena);
 
     const [negocio] = await sql`
       select nombre from negocios where lower(nombre) = lower(${negocioId}) and activo = true

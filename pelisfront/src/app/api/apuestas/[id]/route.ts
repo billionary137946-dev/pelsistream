@@ -4,20 +4,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/server/db";
 import { ErrorHttp, exigirRol, manejarRuta } from "@/lib/server/auth";
+import * as V from "@/lib/server/validar";
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return manejarRuta(async () => {
     const usuario = await exigirRol(request, "operador");
     const { id } = await params;
     const datos = await request.json();
-    const colorNuevo = String(datos.color_nuevo ?? "").toLowerCase();
-    const montoNuevo = Number(datos.monto_nuevo ?? 0);
-
-    if (colorNuevo !== "rojo" && colorNuevo !== "verde") {
-      return NextResponse.json({ detail: "Color inválido." }, { status: 400 });
-    }
-    if (!(montoNuevo >= 500 && montoNuevo <= 1_000_000)) {
-      return NextResponse.json({ detail: "El monto debe ser entre $500 y $1,000,000." }, { status: 400 });
+    // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
+    const colorNuevo = V.unoDe(datos.color_nuevo, ["rojo", "verde"] as const, "Color");
+    const montoNuevo = V.montoApuesta(datos.monto_nuevo);
+    if (!/^\d{1,12}$/.test(id)) {
+      return NextResponse.json({ detail: "Apuesta no encontrada." }, { status: 404 });
     }
 
     await sql.begin(async (tx) => {

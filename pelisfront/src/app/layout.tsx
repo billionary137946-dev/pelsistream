@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AvisoActualizar } from "@/shared/ui/AvisoActualizar";
 import "./globals.css";
 
 // Mismas dos fuentes que usaba el v2 original (Google Fonts vía <link> en
@@ -13,7 +14,7 @@ import "./globals.css";
 // depende de esa integración.
 
 export const metadata: Metadata = {
-  title: "Peli Streams",
+  title: "PeliStreams",
   description: "Sistema de apuestas — palenques y quinielas",
   manifest: "/manifest.webmanifest",
   // favicon.ico se sirve solo por convención de archivo (src/app/favicon.ico);
@@ -22,6 +23,10 @@ export const metadata: Metadata = {
   icons: {
     apple: "/icons/apple-touch-icon.png",
   },
+  // iPhone: al agregarla a inicio abre a pantalla completa, con su nombre y barra de estado sobre el navy.
+  appleWebApp: { capable: true, title: "PeliStreams", statusBarStyle: "black-translucent" },
+  // Que iOS no convierta montos o celulares en links de llamada.
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -42,6 +47,8 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Va en el layout raíz (aplica a toda la app). next/font rompe el build con Turbopack: ver docs/ERRORES.md #7. */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;800;900&display=swap"
@@ -49,6 +56,8 @@ export default function RootLayout({
       </head>
       <body className="min-h-[100dvh] bg-navy text-white font-sans antialiased">
         {children}
+        {/* "Hay una versión nueva · Actualizar" (en todas las pantallas, igual que HGC). */}
+        <AvisoActualizar />
       </body>
     </html>
   );

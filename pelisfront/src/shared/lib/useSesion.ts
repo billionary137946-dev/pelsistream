@@ -22,8 +22,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-import { cerrarSesion, guardarSesion, leerSesion, type DatosSesion, type Rol } from "@/lib/sesion";
+import { api } from "@/shared/lib/api";
+import { cerrarSesion, guardarSesion, leerSesion, type DatosSesion, type Rol } from "@/shared/lib/sesion";
 
 export function useSesion(rolRequerido: Rol) {
   const router = useRouter();
@@ -39,6 +39,8 @@ export function useSesion(rolRequerido: Rol) {
 
     // Muestra de inmediato lo que ya había en localStorage (optimista) para
     // no dejar la pantalla en blanco mientras se revalida contra el backend.
+    // localStorage solo existe en el navegador: se lee aquí y no en useState para no romper la hidratación.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSesion(guardada);
     setCargando(false);
 

@@ -135,9 +135,59 @@ button:active:not(:disabled),
   animation: tarjeta-entra 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* Recorrido guiado (shared/guia): la tarjeta aparece suave. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-aparecer {
+  animation: aparecer 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Botón "?" de ayuda: late en dorado para que se note (igual que en HGC). */
+@keyframes parpadeo-ayuda {
+  0%,
+  100% {
+    color: rgba(255, 255, 255, 0.6);
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    color: var(--color-gold);
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 7px rgba(245, 200, 0, 0.7));
+  }
+}
+.animate-parpadeo-ayuda {
+  animation: parpadeo-ayuda 1.6s ease-in-out infinite;
+}
+
+/* Ícono de la pantalla "Instala la app": flota suave (igual que en HGC). */
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.animate-flotar {
+  animation: flotar 4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-orb,
-  .animate-tarjeta {
+  .animate-tarjeta,
+  .animate-aparecer,
+  .animate-flotar,
+  .animate-parpadeo-ayuda {
     animation: none;
   }
 }

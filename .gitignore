@@ -1,3 +1,8 @@
+# Secretos y dependencias (por si algo queda fuera de pelisfront/)
+.env*
+node_modules/
+.next/
+
 # Archivos de sistema/editor
 .DS_Store
 Thumbs.db
