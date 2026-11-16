@@ -25,6 +25,7 @@ import { Campo } from "@/shared/ui/Campo";
 import { Toast, type DatosToast } from "@/shared/ui/Toast";
 import { InstalarApp } from "@/shared/ui/InstalarApp";
 import { SolicitudesContrasena } from "@/features/admin/SolicitudesContrasena";
+import { CampoContrasenaNueva } from "@/shared/ui/CampoContrasenaNueva";
 
 interface Resumen {
   jugadas: number;
@@ -710,16 +711,7 @@ function ModalEditarUsuario({
             </select>
           </Campo>
           <Campo etiqueta="Nueva contraseña" ayuda="Déjalo vacío para no cambiarla.">
-            <input
-              type="password"
-              autoComplete="new-password"
-              minLength={LIMITES.contrasenaMin}
-              maxLength={LIMITES.contrasenaMax}
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
-              placeholder="Sin cambios"
-              className="campo"
-            />
+            <CampoContrasenaNueva valor={contrasena} onCambiar={setContrasena} requerida={false} placeholder="Sin cambios" />
           </Campo>
           {rol === "cliente" && (
             <div className="grid grid-cols-2 gap-3">
@@ -922,16 +914,7 @@ function ModalCrearUsuario({
             />
           </Campo>
           <Campo etiqueta="Contraseña">
-            <input
-              name="contrasena"
-              required
-              type="password"
-              autoComplete="new-password"
-              minLength={LIMITES.contrasenaMin}
-              maxLength={LIMITES.contrasenaMax}
-              placeholder={`Mínimo ${LIMITES.contrasenaMin} caracteres`}
-              className="campo"
-            />
+            <CampoContrasenaNueva name="contrasena" />
           </Campo>
           <Campo etiqueta="Negocio al que pertenece">
             <select name="negocio_id" required className="campo">

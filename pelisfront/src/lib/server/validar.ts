@@ -5,6 +5,7 @@
 import "server-only";
 import { LIMITES } from "@/shared/lib/limites";
 import { ErrorHttp } from "./auth";
+import { errorContrasena } from "@/shared/lib/contrasena";
 
 export { LIMITES };
 
@@ -35,11 +36,13 @@ export function celular(valor: unknown): string {
   return digitos;
 }
 
-/** Contraseña nueva: 8 a 72 caracteres. (Para iniciar sesión NO se usa: ahí cualquier texto se compara.) */
+/** Contraseña nueva: 8 a 72 caracteres, con 1 mayúscula y 1 símbolo (shared/lib/contrasena.ts). (Para iniciar sesión NO se usa: ahí cualquier texto se compara.) */
 export function contrasenaNueva(valor: unknown): string {
   if (typeof valor !== "string") throw new ErrorHttp(400, "La contraseña es obligatoria.");
   if (valor.length < LIMITES.contrasenaMin) throw new ErrorHttp(400, `La contraseña debe tener al menos ${LIMITES.contrasenaMin} caracteres.`);
   if (new TextEncoder().encode(valor).length > LIMITES.contrasenaMax) throw new ErrorHttp(400, "La contraseña es demasiado larga.");
+  const falta = errorContrasena(valor);
+  if (falta) throw new ErrorHttp(400, falta);
   return valor;
 }
 

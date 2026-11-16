@@ -11,6 +11,8 @@ import { cerrarSesion, guardarSesion, leerSesion, rutaDeInicio, type DatosSesion
 import { FondoAuth } from "@/shared/ui/FondoAuth";
 import { LogoPeli } from "@/shared/ui/LogoPeli";
 import { LIMITES } from "@/shared/lib/inputs";
+import { errorContrasena } from "@/shared/lib/contrasena";
+import { CampoContrasenaNueva } from "@/shared/ui/CampoContrasenaNueva";
 
 const CLASE_CAMPO =
   "w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-[clamp(11px,3vw,14px)] font-bold outline-none transition-colors placeholder:text-white/25 placeholder:font-normal focus:border-gold focus:bg-gold/5 focus:ring-4 focus:ring-gold/10";
@@ -43,7 +45,8 @@ export function CambiarContrasena() {
   async function guardar(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (nueva.length < LIMITES.contrasenaMin) return setError(`La nueva debe tener al menos ${LIMITES.contrasenaMin} caracteres.`);
+    const falta = errorContrasena(nueva);
+    if (falta) return setError(falta);
     if (nueva !== repetir) return setError("Las dos contraseñas nuevas no coinciden.");
     if (nueva === actual) return setError("La nueva debe ser distinta a la actual.");
     setCargando(true);
@@ -117,7 +120,10 @@ export function CambiarContrasena() {
                 "current-password",
                 obligatorio ? "La que te dio el admin" : "La que usas hoy",
               )}
-              {campoContrasena("Nueva contraseña", nueva, setNueva, "new-password", `Mínimo ${LIMITES.contrasenaMin} caracteres`)}
+              <label className="block">
+                <span className="block text-xs text-white/50 mb-1.5 font-bold">Nueva contraseña</span>
+                <CampoContrasenaNueva valor={nueva} onCambiar={setNueva} mostrar={ver} className={CLASE_CAMPO} />
+              </label>
               {campoContrasena("Repite la nueva", repetir, setRepetir, "new-password", "Igual a la de arriba")}
               <label className="flex items-center gap-2 text-sm text-white/60">
                 <input type="checkbox" checked={ver} onChange={(e) => setVer(e.target.checked)} className="size-4 accent-gold" />

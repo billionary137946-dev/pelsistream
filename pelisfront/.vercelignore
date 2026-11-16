@@ -1,0 +1,4 @@
+# Nunca subir claves a Vercel al publicar con la CLI (las variables viven en Vercel → Settings → Environment Variables).
+.env*
+node_modules
+.next

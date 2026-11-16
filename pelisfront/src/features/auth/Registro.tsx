@@ -11,6 +11,7 @@ import { InstalarApp } from "@/shared/ui/InstalarApp";
 import { LogoPeli } from "@/shared/ui/LogoPeli";
 import { Campo } from "@/shared/ui/Campo";
 import { LIMITES, limpiarCelular, limpiarTexto, soloDigitos } from "@/shared/lib/inputs";
+import { CampoContrasenaNueva } from "@/shared/ui/CampoContrasenaNueva";
 
 function FormularioRegistro() {
   const negocioId = useSearchParams().get("negocio") ?? "";
@@ -110,15 +111,9 @@ function FormularioRegistro() {
                 />
               </Campo>
               <Campo etiqueta="Contraseña">
-                <input
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  minLength={LIMITES.contrasenaMin}
-                  maxLength={LIMITES.contrasenaMax}
-                  value={contrasena}
-                  onChange={(e) => setContrasena(e.target.value)}
-                  placeholder={`Mínimo ${LIMITES.contrasenaMin} caracteres`}
+                <CampoContrasenaNueva
+                  valor={contrasena}
+                  onCambiar={setContrasena}
                   className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-[clamp(11px,3vw,14px)] font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold focus:bg-gold/5"
                 />
               </Campo>
