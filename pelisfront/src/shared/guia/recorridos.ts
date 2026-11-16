@@ -9,6 +9,10 @@ export type Pantalla =
   | "adminOperadores"
   | "adminClientes"
   | "operadorJugadas"
+  | "operadorApuesta"
+  | "operadorQuiniela"
+  | "operadorCerrar"
+  | "operadorEditar"
   | "operadorHistorial"
   | "cliente";
 
@@ -96,46 +100,51 @@ export const RECORRIDOS: Record<Pantalla, PasoRecorrido[]> = {
     {
       objetivo: '[data-guia="op-tipo"]',
       titulo: "Apuesta o Quiniela",
-      texto: "Apuesta = pelea rojo contra verde. Quiniela = varios apostadores por lugar (Ventaja, Mano a mano, Pares y nones…).",
+      texto: "Apuesta = pelea rojo contra verde. Quiniela = varios apostadores por lugar (Ventaja, Quiniela, Mano a mano, Pares y nones).",
       consejo: "Solo puede haber una quiniela a la vez y siempre va en el slot 1.",
     },
     {
       objetivo: '[data-guia="op-slots"]',
       titulo: "Tus 5 slots",
       texto: "Lleva hasta 5 jugadas al mismo tiempo. Cada número guarda su propia jugada; cambia entre ellos sin perder nada.",
-      consejo: "Al iniciar una jugada se abre el siguiente slot.",
+      consejo: "Al iniciar una jugada se abre el siguiente slot. “Libre” = slot sin jugada.",
     },
     {
-      objetivo: '[data-guia="op-definir"]',
-      titulo: "Define la jugada",
-      texto: "Nombre del palenque, número de jugada y el nombre de cada equipo. Luego toca Iniciar.",
-      consejo: "Si el número de jugada ya se usó en ese palenque, el campo se pone rojo.",
+      objetivo: '[data-guia="op-palenque"]',
+      titulo: "Palenque y número de jugada",
+      texto: "Escribe el nombre del palenque y el número de esta jugada (1, 2, 3…).",
+      consejo: "Si ese número ya se usó en el mismo palenque, el campo se pone rojo y no te deja iniciar.",
     },
     {
-      objetivo: '[data-guia="op-cliente"]',
-      titulo: "Elige al cliente",
-      texto: "Búscalo por alias o celular y tócalo en la lista. Solo salen clientes activos de tu negocio.",
+      objetivo: '[data-guia="op-equipos"]',
+      titulo: "Los dos equipos",
+      texto: "Quién va por el rojo y quién por el verde. Así se verá en las apuestas y en los palenques abiertos.",
     },
     {
-      objetivo: '[data-guia="op-colores"]',
-      titulo: "Toca el color y listo",
-      texto: "Con cliente y monto ($500 a $1,000,000), al tocar rojo o verde la apuesta se registra y se descuenta de su saldo.",
+      objetivo: '[data-guia="op-posicion"]',
+      titulo: "Cambiar posición",
+      texto: "Pone el verde a la izquierda y el rojo a la derecha (o al revés), para que coincida con el palenque.",
     },
     {
-      objetivo: '[data-guia="op-cerrar"]',
-      titulo: "Cierra la apuesta",
-      texto: "Elige quién ganó. Ganador cobra menos el corretaje; empate o cancelada regresa la apuesta completa.",
-      consejo: "Se activa cuando ya hay apuestas de los dos colores.",
+      objetivo: '[data-guia="op-q-tipo"]',
+      titulo: "Tipo de quiniela",
+      texto: "Elige Ventaja, Quiniela, Mano a mano o Pares y nones. En Pares y nones también se capturan puntos y carta.",
     },
     {
-      objetivo: '[data-guia="op-quiniela"]',
-      titulo: "Agrega apostadores",
-      texto: "Escribe cada nombre y tócalo en Agregar. Al cerrar, marca a los ganadores y confirma.",
+      objetivo: '[data-guia="op-q-monto"]',
+      titulo: "Monto por lugar",
+      texto: "Lo que paga cada apostador por su lugar: de $500 a $1,000,000. Al lado pones cuántos lugares hay.",
+    },
+    {
+      objetivo: '[data-guia="op-iniciar"]',
+      titulo: "Inicia la jugada",
+      texto: "Con eso queda abierta y ya puedes registrar apuestas (o apostadores, si es quiniela).",
     },
     {
       objetivo: '[data-guia="op-palenques"]',
       titulo: "Palenques abiertos",
-      texto: "Lo apostado a cada color en las jugadas que siguen abiertas, con quién apostó y cuánto.",
+      texto: "Las jugadas que siguen abiertas: cuánto lleva cada color y quién apostó cuánto. “↻ Actualizar” las trae de nuevo.",
+      consejo: "Si tienes varias abiertas, cambia entre ellas con las pestañas de arriba de la tarjeta.",
     },
     {
       objetivo: '[data-guia="menu"]',
@@ -144,6 +153,103 @@ export const RECORRIDOS: Record<Pantalla, PasoRecorrido[]> = {
     },
     AYUDA,
   ],
+  operadorApuesta: [
+    {
+      objetivo: '[data-guia="op-cliente"]',
+      titulo: "Elige al cliente",
+      texto: "Escribe su alias o celular y tócalo en la lista. Solo salen clientes activos de tu negocio, con su saldo.",
+      consejo: "No se puede apostar a nombre de alguien que no esté en la lista.",
+    },
+    {
+      objetivo: '[data-guia="op-monto"]',
+      titulo: "El monto",
+      texto: "Cuánto apuesta: de $500 a $1,000,000, solo números.",
+    },
+    {
+      objetivo: '[data-guia="op-colores"]',
+      titulo: "Toca el color y listo",
+      texto: "Al tocar rojo o verde la apuesta queda registrada y se descuenta del saldo del cliente en ese momento.",
+      consejo: "No hay otro botón de guardar: el color ES el registro. Revisa cliente y monto antes de tocar.",
+    },
+    {
+      objetivo: '[data-guia="op-cerrar"]',
+      titulo: "Cierra la apuesta",
+      texto: "Cuando termine la pelea, ciérrala y elige quién ganó.",
+      consejo: "Se activa cuando ya hay apuestas de los dos colores.",
+    },
+    {
+      objetivo: '[data-guia="op-volver"]',
+      titulo: "Volver a la jugada",
+      texto: "Regresa a los datos de la jugada (palenque, número, equipos) sin perder las apuestas.",
+    },
+    {
+      objetivo: '[data-guia="op-palenques"]',
+      titulo: "Lo que lleva esta pelea",
+      texto: "Aquí ves en vivo cuánto va al rojo, cuánto al verde y quién apostó.",
+    },
+    AYUDA,
+  ],
+  operadorQuiniela: [
+    {
+      objetivo: '[data-guia="op-q-apostador"]',
+      titulo: "Agrega apostadores",
+      texto: "Escribe el nombre y toca “+ Agregar” (o Enter). Cada uno ocupa el siguiente lugar.",
+      consejo: "Los apostadores de quiniela no necesitan cuenta: pagan en efectivo.",
+    },
+    {
+      objetivo: '[data-guia="op-q-lista"]',
+      titulo: "Lista de apostadores",
+      texto: "Todos los lugares con su monto. Arriba ves cuántos lugares van y el total.",
+    },
+    {
+      objetivo: '[data-guia="op-q-cerrar"]',
+      titulo: "Cierra la quiniela",
+      texto: "Primer toque: marcas a los ganadores tocándolos en la lista (🏆). Segundo toque: “Confirmar cierre”.",
+      consejo: "Si se cae la señal al confirmar, vuelve a tocar: no se cobra dos veces.",
+    },
+    AYUDA,
+  ],
+  operadorCerrar: [
+    {
+      objetivo: '[data-guia="op-r-ganador"]',
+      titulo: "¿Quién ganó?",
+      texto: "Toca el color ganador. Cada botón muestra cuánto se apostó a ese color.",
+      consejo: "Los ganadores cobran menos el corretaje del negocio.",
+    },
+    {
+      objetivo: '[data-guia="op-r-empate"]',
+      titulo: "Empate",
+      texto: "A todos se les regresa su apuesta completa, sin corretaje.",
+    },
+    {
+      objetivo: '[data-guia="op-r-cancelada"]',
+      titulo: "Cancelada",
+      texto: "Si la pelea no se hizo: igual que empate, todos recuperan su apuesta completa.",
+    },
+    {
+      objetivo: '[data-guia="op-r-confirmar"]',
+      titulo: "Confirma",
+      texto: "Revisa la lista y confirma. Ya cerrada, la jugada no se puede editar.",
+    },
+  ],
+  operadorEditar: [
+    {
+      objetivo: '[data-guia="op-e-monto"]',
+      titulo: "Nuevo monto",
+      texto: "Corrige cuánto apostó: de $500 a $1,000,000.",
+    },
+    {
+      objetivo: '[data-guia="op-e-color"]',
+      titulo: "Color",
+      texto: "Cambia el color si se registró al revés.",
+    },
+    {
+      objetivo: '[data-guia="op-e-guardar"]',
+      titulo: "Guarda",
+      texto: "El saldo del cliente se ajusta solo con la diferencia.",
+      consejo: "Solo se pueden editar apuestas pendientes (de peleas que no se han cerrado).",
+    },
+  ],
   operadorHistorial: [
     {
       objetivo: '[data-guia="op-filtros"]',
@@ -151,10 +257,19 @@ export const RECORRIDOS: Record<Pantalla, PasoRecorrido[]> = {
       texto: "Todas tus jugadas o solo las pendientes (las que aún no se cierran).",
     },
     {
+      objetivo: '[data-guia="op-actualizar"]',
+      titulo: "Actualizar",
+      texto: "Vuelve a traer tu historial con lo más nuevo.",
+    },
+    {
       objetivo: '[data-guia="op-historial"]',
       titulo: "Tu historial",
       texto: "Cada apuesta con su color, monto, fecha y resultado.",
-      consejo: "Las pendientes tienen “Editar”: corrige monto o color antes de cerrar y el saldo se ajusta solo.",
+    },
+    {
+      objetivo: '[data-guia="op-editar"]',
+      titulo: "Editar una pendiente",
+      texto: "Corrige monto o color antes de cerrar la pelea; el saldo del cliente se ajusta solo.",
     },
     {
       objetivo: '[data-guia="menu"]',

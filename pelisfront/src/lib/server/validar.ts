@@ -59,8 +59,8 @@ export function entero(valor: unknown, campo: string, min: number, max: number):
 }
 
 /** Porcentaje 0–100 con hasta 2 decimales. */
-export function porcentaje(valor: unknown, campo: string): number {
-  const n = numero(valor, campo, 0, 100);
+export function porcentaje(valor: unknown, campo: string, min = 0, max = 100): number {
+  const n = numero(valor, campo, min, max);
   return Math.round(n * 100) / 100;
 }
 

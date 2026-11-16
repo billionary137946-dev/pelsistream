@@ -5,10 +5,10 @@ Actualizado: 2026-11-16
 Fase actual:  2 — Orden del código + app instalable
 En curso:     reorganizar en capas app → features → shared (cliente y auth ✅ · admin y operador pendientes)
 Siguiente:
-  1. Pasar admin y operador a features/ + su recorrido de ayuda (textos ya escritos en shared/guia/recorridos.ts)
+  1. Marcar la pantalla de admin para su recorrido (igual que operador) y pasar admin/operador a features/
   2. Probar en celular real: instalar (Android Chrome y iPhone Safari) + recorrido de ayuda
   3. Commit + push → Vercel (y confirmar variables DATABASE_URL, JWT_SECRETO, JWT_HORAS_EXPIRACION)
-Bloqueos:     ninguno
+Bloqueos:     Vercel (pelistreams): Root Directory debe ser "pelisfront" para que el push publique (docs/ERRORES.md #16)
 
 == SEMÁFORO ==
 🟢 Login celular+contraseña (bcrypt + JWT); si ya hay sesión manda directo al panel
@@ -19,7 +19,8 @@ Bloqueos:     ninguno
 🟢 PWA como HGC: manifest + ícono maskable + sw.js + pantalla "Instala la app" + aviso "Actualizar"
 🟢 Encabezados de seguridad (CSP, X-Frame, HSTS) como HGC
 🟢 BD Supabase: 3 migraciones aplicadas, RLS activado sin policies (solo backend)
-🟡 Ayuda (recorridos): lista en cliente; admin y operador tienen los textos pero falta marcar sus pantallas
+🟢 Ayuda (recorridos) operador: 6 recorridos / 32 pasos (jugadas, apuesta, quiniela, ¿quién ganó?, editar, historial)
+🟡 Ayuda (recorridos): cliente listo; admin tiene textos pero falta marcar su pantalla
 🔴 Gráfica de corretaje del admin (sin serie temporal ni UI)
 🔴 Rate-limit en login · tabla de auditoría · tests automatizados
 🔴 Offline (encolar apuestas sin señal): sw.js no guarda caché a propósito

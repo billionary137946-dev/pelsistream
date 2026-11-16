@@ -12,6 +12,8 @@ export interface DatosSesion {
   negocio_id: string;
   saldo: number;
   limite_credito: number;
+  /** Entró con la contraseña temporal del admin: primero debe poner una nueva (/cambiar-contrasena). */
+  debe_cambiar_contrasena?: boolean;
 }
 
 const CLAVE = "token";

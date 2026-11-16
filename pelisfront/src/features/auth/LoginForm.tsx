@@ -5,6 +5,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ErrorApi } from "@/shared/lib/api";
 import { guardarSesion, leerSesion, rutaDeInicio, type DatosSesion } from "@/shared/lib/sesion";
@@ -26,7 +27,7 @@ export function LoginForm() {
   // (el panel la revalida contra el servidor con useSesion; si ya no sirve, regresa aquí).
   useEffect(() => {
     const guardada = leerSesion();
-    if (guardada?.token) router.replace(rutaDeInicio(guardada.rol));
+    if (guardada?.token) router.replace(guardada.debe_cambiar_contrasena ? "/cambiar-contrasena" : rutaDeInicio(guardada.rol));
   }, [router]);
 
   async function iniciarSesion(evento: FormEvent) {
@@ -44,7 +45,8 @@ export function LoginForm() {
         contrasena,
       });
       guardarSesion(datos);
-      router.push(rutaDeInicio(datos.rol));
+      // Con contraseña temporal (se la dio el admin) primero pone una nueva suya.
+      router.push(datos.debe_cambiar_contrasena ? "/cambiar-contrasena" : rutaDeInicio(datos.rol));
     } catch (e) {
       setError(e instanceof ErrorApi ? e.message : "No se pudo iniciar sesión.");
     } finally {
@@ -124,6 +126,9 @@ export function LoginForm() {
           >
             {cargando ? <span className="spinner" /> : "Entrar"}
           </button>
+          <Link href="/olvide" className="text-center text-sm text-white/50 hover:text-gold py-2 transition-colors">
+            ¿Olvidaste tu contraseña?
+          </Link>
         </form>
       </div>
     </div>

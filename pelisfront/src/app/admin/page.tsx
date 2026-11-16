@@ -12,7 +12,9 @@ import {
   LIMITES,
   limpiarCelular,
   limpiarDecimal,
-  limpiarDigitos,
+  limpiarEnteroHasta,
+  limpiarPorcentaje,
+  subirAlMinimo,
   limpiarTexto,
   soloDigitos,
   soloNumeroDecimal,
@@ -22,6 +24,7 @@ import { PanelHeader } from "@/shared/ui/PanelHeader";
 import { Campo } from "@/shared/ui/Campo";
 import { Toast, type DatosToast } from "@/shared/ui/Toast";
 import { InstalarApp } from "@/shared/ui/InstalarApp";
+import { SolicitudesContrasena } from "@/features/admin/SolicitudesContrasena";
 
 interface Resumen {
   jugadas: number;
@@ -324,6 +327,8 @@ export default function PanelAdmin() {
           <>
             {/* Admin vive más en la compu: aquí es tarjeta con "Ahora no" (igual que el panel del entrenador en HGC). */}
             <InstalarApp nombre="PeliStreams" className="mb-4" />
+            {/* Quién pidió "olvidé mi contraseña" (solo aparece si hay solicitudes). */}
+            <SolicitudesContrasena onError={(texto) => setToast({ tipo: "error", texto })} />
             {resumen ? (
               <div className="grid grid-cols-2 gap-3">
                 <TarjetaResumen etiqueta="Jugadas registradas" valor={resumen.jugadas.toString()} />
@@ -610,22 +615,24 @@ function ModalEditarNegocio({
         <h3 className="font-display text-gold text-lg tracking-wide mb-4">Editar {negocio.nombre}</h3>
 
         <div className="flex flex-col gap-3">
-          <Campo etiqueta="Máx. operadores">
+          <Campo etiqueta="Máx. operadores" ayuda={`De 1 a ${LIMITES.maxOperadores}.`}>
             <input
               type="text"
               inputMode="numeric"
               value={maxOperadores}
-              onChange={(e) => setMaxOperadores(limpiarDigitos(e.target.value, 2))}
+              onChange={(e) => setMaxOperadores(limpiarEnteroHasta(e.target.value, LIMITES.maxOperadores))}
+              onBlur={() => setMaxOperadores((v) => subirAlMinimo(v, 1))}
               onKeyDown={soloDigitos}
               className="campo"
             />
           </Campo>
-          <Campo etiqueta="Corretaje %">
+          <Campo etiqueta="Corretaje %" ayuda={`De ${LIMITES.corretajeMin}% a ${LIMITES.corretajeMax}%.`}>
             <input
               type="text"
               inputMode="decimal"
               value={corretajePct}
-              onChange={(e) => setCorretajePct(limpiarDecimal(e.target.value, { enteros: 3 }))}
+              onChange={(e) => setCorretajePct(limpiarPorcentaje(e.target.value, LIMITES.corretajeMax))}
+              onBlur={() => setCorretajePct((v) => subirAlMinimo(v, LIMITES.corretajeMin))}
               onKeyDown={soloNumeroDecimal}
               className="campo"
             />
@@ -827,26 +834,32 @@ function ModalCrearNegocio({
             />
           </Campo>
           <div className="grid grid-cols-2 gap-3">
-            <Campo etiqueta="Máx. operadores" ayuda="Cuántos operadores puede tener a la vez.">
+            <Campo etiqueta="Máx. operadores" ayuda={`Cuántos operadores puede tener a la vez (1 a ${LIMITES.maxOperadores}).`}>
               <input
                 name="max_operadores"
                 type="text"
                 inputMode="numeric"
                 required
                 defaultValue={3}
-                onInput={filtrarAlEscribir((v) => limpiarDigitos(v, 2))}
+                onInput={filtrarAlEscribir((v) => limpiarEnteroHasta(v, LIMITES.maxOperadores))}
+                onBlur={(e) => {
+                  e.currentTarget.value = subirAlMinimo(e.currentTarget.value, 1);
+                }}
                 onKeyDown={soloDigitos}
                 className="campo"
               />
             </Campo>
-            <Campo etiqueta="Corretaje" ayuda="% que se queda la casa por apuesta ganada.">
+            <Campo etiqueta="Corretaje" ayuda={`% que se queda la casa por apuesta ganada (${LIMITES.corretajeMin}% a ${LIMITES.corretajeMax}%).`}>
               <input
                 name="corretaje_pct"
                 type="text"
                 inputMode="decimal"
                 required
                 defaultValue={10}
-                onInput={filtrarAlEscribir((v) => limpiarDecimal(v, { enteros: 3 }))}
+                onInput={filtrarAlEscribir((v) => limpiarPorcentaje(v, LIMITES.corretajeMax))}
+                onBlur={(e) => {
+                  e.currentTarget.value = subirAlMinimo(e.currentTarget.value, LIMITES.corretajeMin);
+                }}
                 onKeyDown={soloNumeroDecimal}
                 className="campo"
               />

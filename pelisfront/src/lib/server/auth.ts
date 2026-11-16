@@ -17,11 +17,13 @@ export interface FilaUsuario {
   limite_credito: string;
   negocio_id: string | null;
   estatus: string;
+  debe_cambiar_contrasena: boolean;
 }
 
 export async function filaUsuario(celular: string): Promise<FilaUsuario | null> {
   const filas = await sql<FilaUsuario[]>`
-    select celular, contrasena_hash, rol, alias, saldo, limite_credito, negocio_id, estatus
+    select celular, contrasena_hash, rol, alias, saldo, limite_credito, negocio_id, estatus,
+      debe_cambiar_contrasena
     from usuarios where celular = ${celular}
   `;
   return filas[0] ?? null;
@@ -33,7 +35,14 @@ export class ErrorHttp extends Error {
   }
 }
 
-export async function obtenerSesionActual(request: NextRequest): Promise<FilaUsuario> {
+// 428 = "primero cambia tu contraseña": entró con una temporal que le dio el admin. Mientras no ponga
+// una nueva suya, ninguna ruta funciona (solo /api/auth/cambiar-contrasena, que pasa permitirTemporal).
+export const ESTADO_CAMBIAR_CONTRASENA = 428;
+
+export async function obtenerSesionActual(
+  request: NextRequest,
+  { permitirTemporal = false }: { permitirTemporal?: boolean } = {},
+): Promise<FilaUsuario> {
   const authorization = request.headers.get("authorization") ?? "";
   if (!authorization.startsWith("Bearer ")) {
     throw new ErrorHttp(401, "Sesión inválida.");
@@ -45,6 +54,9 @@ export async function obtenerSesionActual(request: NextRequest): Promise<FilaUsu
   const usuario = await filaUsuario(payload.sub);
   if (!usuario || usuario.estatus === "inactivo") {
     throw new ErrorHttp(401, "Usuario inactivo o no encontrado.");
+  }
+  if (usuario.debe_cambiar_contrasena && !permitirTemporal) {
+    throw new ErrorHttp(ESTADO_CAMBIAR_CONTRASENA, "Primero pon tu nueva contraseña.");
   }
   return usuario;
 }

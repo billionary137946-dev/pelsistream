@@ -23,3 +23,4 @@ Formato: Síntoma · Causa · Arreglo · Fecha
 | 13 | `creado_por` de un negocio se podía falsear | `POST /api/negocios` aceptaba ese campo del navegador | Siempre el celular del admin de la sesión | 2026-11-16 |
 | 14 | "Activar cliente" podía cambiar saldo de un operador/admin | El `update` no filtraba por rol | `where ... and rol = 'cliente'` | 2026-11-16 |
 | 15 | Saldo/límite/máx. operadores aceptaban texto, NaN, infinito, negativos | `Number()` sin validar | `lib/server/validar.ts` en todas las rutas | 2026-11-16 |
+| 16 | Deploy desde GitHub falla: "No Next.js version detected" | Vercel (proyecto pelistreams) con Root Directory "." y la app vive en pelisfront/ (antes se subía con la CLI desde la carpeta) | Settings → Build and Deployment → Root Directory = `pelisfront` | 2026-11-16 |

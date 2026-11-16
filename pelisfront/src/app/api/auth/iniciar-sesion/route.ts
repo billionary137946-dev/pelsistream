@@ -3,11 +3,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { filaUsuario, manejarRuta } from "@/lib/server/auth";
 import { crearToken, verificarContrasena } from "@/lib/server/seguridad";
+import { limpiarCelular } from "@/shared/lib/inputs";
 
 export async function POST(request: NextRequest) {
   return manejarRuta(async () => {
     const datos = await request.json();
-    const celular = String(datos.celular ?? "").trim();
+    // Sin lada: "+1 914 359 7319" o "+52 55…" se buscan como sus 10 dígitos (la lada solo es para WhatsApp).
+    const celular = limpiarCelular(String(datos.celular ?? ""));
     const contrasena = String(datos.contrasena ?? "");
 
     const usuario = await filaUsuario(celular);
@@ -36,6 +38,8 @@ export async function POST(request: NextRequest) {
       negocio_id: usuario.negocio_id,
       saldo: Number(usuario.saldo),
       limite_credito: Number(usuario.limite_credito),
+      // true = entró con la contraseña temporal del admin: la pantalla lo manda a poner una nueva.
+      debe_cambiar_contrasena: usuario.debe_cambiar_contrasena,
     });
   });
 }

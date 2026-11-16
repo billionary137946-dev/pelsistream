@@ -16,6 +16,8 @@ export const LIMITES = {
   apuestaMin: 500,
   apuestaMax: 1_000_000,
   dineroMax: 100_000_000,
-  maxOperadores: 50,
+  maxOperadores: 10, // por negocio (decisión del dueño, 2026-11-16)
+  corretajeMin: 10, // % mínimo que se queda la casa (decisión del dueño, 2026-11-16)
+  corretajeMax: 100,
   apostadoresMax: 200,
 } as const;

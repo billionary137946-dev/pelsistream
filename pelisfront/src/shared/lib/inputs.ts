@@ -15,10 +15,29 @@ export function limpiarDigitos(valor: string, max: number): string {
   return valor.replace(/\D/g, "").slice(0, max);
 }
 
-/** Celular de México: solo dígitos; si lo pegan con lada de país (+52 o +521) se la quita. Máx. 10. */
+/** Entero sin decimales que nunca pasa de `max` (si escriben 75 con máx. 10, queda 10). */
+export function limpiarEnteroHasta(valor: string, max: number): string {
+  const d = valor.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, String(max).length);
+  return d !== "" && Number(d) > max ? String(max) : d;
+}
+
+/** Porcentaje con hasta 2 decimales que nunca pasa de `max` (si escriben 150 con máx. 100, queda 100). */
+export function limpiarPorcentaje(valor: string, max: number): string {
+  const v = limpiarDecimal(valor, { enteros: 3 });
+  return v !== "" && Number(v) > max ? String(max) : v;
+}
+
+/** Al salir del campo: si quedó por debajo del mínimo, se sube al mínimo (vacío se deja: lo frena `required`). */
+export function subirAlMinimo(valor: string, min: number): string {
+  return valor !== "" && Number(valor) < min ? String(min) : valor;
+}
+
+/** Celular a 10 dígitos. Si lo pegan con lada de país la quita: +52 / +521 (México), +1 (EE. UU./Canadá)
+ * y el prefijo internacional 00 ("001 650…"). Antes "+1 914 359 7319" quedaba mal como "1914359731". */
 export function limpiarCelular(valor: string): string {
   let d = valor.replace(/\D/g, "");
-  if (d.length > LIMITES.celular) d = d.replace(/^521?(?=\d{10}$)/, "");
+  if (d.length > LIMITES.celular) d = d.replace(/^00/, "");
+  if (d.length > LIMITES.celular) d = d.replace(/^(?:521?|1)(?=\d{10}$)/, "");
   return d.slice(0, LIMITES.celular);
 }
 

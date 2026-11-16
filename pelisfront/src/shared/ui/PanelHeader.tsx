@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cerrarSesion } from "@/shared/lib/sesion";
 import { LogoPeli } from "@/shared/ui/LogoPeli";
@@ -28,6 +29,14 @@ export function PanelHeader({ titulo, alias }: Readonly<{ titulo: string; alias:
         >
           ?
         </button>
+        <Link
+          href="/cambiar-contrasena"
+          aria-label="Cambiar mi contraseña"
+          title="Cambiar mi contraseña"
+          className="w-9 h-9 grid place-items-center rounded-full border border-border text-base hover:border-gold"
+        >
+          🔑
+        </Link>
         <button
           onClick={() => {
             cerrarSesion();

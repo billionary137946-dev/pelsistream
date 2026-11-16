@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Cada campo solo acepta su tipo de dato (lib/server/validar.ts).
     const nombre = V.texto(datos.nombre, "El nombre del negocio", { min: 2, max: V.LIMITES.nombreNegocio });
     const maxOperadores = V.entero(datos.max_operadores ?? 3, "Máx. operadores", 1, V.LIMITES.maxOperadores);
-    const corretajePct = V.porcentaje(datos.corretaje_pct ?? 10, "El corretaje");
+    const corretajePct = V.porcentaje(datos.corretaje_pct ?? V.LIMITES.corretajeMin, "El corretaje", V.LIMITES.corretajeMin, V.LIMITES.corretajeMax);
 
     const yaExiste = await sql`
       select 1 from negocios where lower(nombre) = lower(${nombre})

@@ -23,6 +23,8 @@ import { Campo } from "@/shared/ui/Campo";
 import { Toast, type DatosToast } from "@/shared/ui/Toast";
 import { LIMITES, limpiarDigitos, limpiarTexto, soloDigitos } from "@/shared/lib/inputs";
 import { InstalarApp } from "@/shared/ui/InstalarApp";
+import { Recorrido } from "@/shared/guia/Recorrido";
+import type { Pantalla } from "@/shared/guia/recorridos";
 
 interface ClienteBusqueda {
   celular: string;
@@ -617,6 +619,19 @@ export default function PanelOperador() {
     () => (filtroHistorial === "pendientes" ? historial.filter((j) => j.resultado === "") : historial),
     [historial, filtroHistorial],
   );
+  // Para la ayuda: el botón "Editar" de la primera apuesta pendiente se marca en el recorrido.
+  const idPrimeraPendiente = historialFiltrado.find((j) => j.resultado === "")?.id;
+
+  // Qué recorrido de ayuda toca según lo que está en pantalla (textos en shared/guia/recorridos.ts).
+  function pantallaDeAyuda(): Pantalla {
+    if (apuestaAEditar) return "operadorEditar";
+    if (modalResultado) return "operadorCerrar";
+    if (tab === "historial") return "operadorHistorial";
+    if (paso === "apuesta") return "operadorApuesta";
+    if (paso === "quiniela") return "operadorQuiniela";
+    return "operadorJugadas";
+  }
+  const pantallaGuia = pantallaDeAyuda();
 
   // Con hasta 5 jugadas abiertas en paralelo, hace falta dejar claro a qué
   // slot corresponde cada tarjeta de "Palenques abiertos".
@@ -652,7 +667,7 @@ export default function PanelOperador() {
                 importar el paso. */}
             <section className="bg-card border border-border rounded-2xl p-4">
               <p className="font-display text-gold text-xl tracking-wide mb-3">Nueva jugada</p>
-              <div className="flex gap-2 mb-3">
+              <div data-guia="op-tipo" className="flex gap-2 mb-3">
                 <button
                   type="button"
                   onClick={() => elegirTipo("Apuesta")}
@@ -675,7 +690,7 @@ export default function PanelOperador() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-around bg-navy/60 border border-border rounded-2xl p-2 gap-1">
+              <div data-guia="op-slots" className="flex items-center justify-around bg-navy/60 border border-border rounded-2xl p-2 gap-1">
                 {slots.map((s, i) => {
                   const visible = quinielaEnSlot1 ? i === 0 : slotsRevelados[i];
                   if (!visible) return null;
@@ -709,7 +724,7 @@ export default function PanelOperador() {
 
                 {slotActivoObj.tipo === "Apuesta" ? (
                   <>
-                    <div className="grid grid-cols-[1fr_auto] gap-3">
+                    <div data-guia="op-palenque" className="grid grid-cols-[1fr_auto] gap-3">
                       <Campo etiqueta="Nombre del palenque">
                         <input
                           value={slotActivoObj.nombre}
@@ -737,12 +752,13 @@ export default function PanelOperador() {
                     <button
                       type="button"
                       onClick={cambiarPosicion}
+                      data-guia="op-posicion"
                       className="flex items-center gap-1 text-xs font-bold text-white/40 hover:text-gold transition-colors py-1 px-2 self-center"
                     >
                       <span>⇄</span> Cambiar posición
                     </button>
 
-                    <div className="grid grid-cols-2 gap-2 relative">
+                    <div data-guia="op-equipos" className="grid grid-cols-2 gap-2 relative">
                       {(slotActivoObj.invertido
                         ? [
                             { color: "verde" as const, valor: slotActivoObj.verde },
@@ -788,6 +804,7 @@ export default function PanelOperador() {
                   <>
                     <Campo etiqueta="Tipo de quiniela">
                       <select
+                        data-guia="op-q-tipo"
                         value={slotActivoObj.subTipoQuiniela}
                         onChange={(e) => actualizarSlotActivo({ subTipoQuiniela: e.target.value })}
                         className="campo"
@@ -813,6 +830,7 @@ export default function PanelOperador() {
                         <input
                           type="text"
                           inputMode="numeric"
+                          data-guia="op-q-monto"
                           value={slotActivoObj.montoLugar}
                           onChange={(e) => actualizarSlotActivo({ montoLugar: limpiarDigitos(e.target.value, 7) })}
                           onKeyDown={soloDigitos}
@@ -840,6 +858,7 @@ export default function PanelOperador() {
                 <button
                   type="button"
                   onClick={iniciarJugada}
+                  data-guia="op-iniciar"
                   className="w-full py-3 mt-1 bg-gradient-to-br from-gold to-gold-2 text-navy rounded-xl font-black transition-all active:scale-[.98] flex items-center justify-center gap-2"
                 >
                   <span>▶</span> {slotActivoObj.tipo === "Quiniela" ? "Iniciar Quiniela" : "Iniciar Apuesta"}
@@ -852,6 +871,7 @@ export default function PanelOperador() {
                 <button
                   type="button"
                   onClick={volverALaJugada}
+                  data-guia="op-volver"
                   className="self-start flex items-center gap-1.5 text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 transition-colors"
                 >
                   ← Volver a la jugada
@@ -869,6 +889,7 @@ export default function PanelOperador() {
                         setClienteElegido(null);
                         setBusqueda(limpiarTexto(e.target.value, LIMITES.alias));
                       }}
+                      data-guia="op-cliente"
                       placeholder="Buscar por alias o celular…"
                       className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
                     />
@@ -905,6 +926,7 @@ export default function PanelOperador() {
                     value={monto}
                     onChange={(e) => setMonto(limpiarDigitos(e.target.value, 7))}
                     onKeyDown={soloDigitos}
+                    data-guia="op-monto"
                     placeholder="500.00"
                     className="w-full py-3 px-4 bg-white/[.06] border-2 border-border/80 rounded-xl font-bold outline-none placeholder:text-white/25 placeholder:font-normal focus:border-gold"
                   />
@@ -917,7 +939,7 @@ export default function PanelOperador() {
                     hace falta otro botón (igual que operador.html en v2). */}
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-wide text-white/50 mb-1.5">Color</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div data-guia="op-colores" className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       disabled={!clienteElegido || !montoValido || enviando}
@@ -941,6 +963,7 @@ export default function PanelOperador() {
                   type="button"
                   disabled={!puedeCerrarApuesta}
                   onClick={abrirModalResultado}
+                  data-guia="op-cerrar"
                   className="w-full py-3 bg-gradient-to-br from-gold to-gold-2 text-navy rounded-xl font-black transition-all active:scale-[.98] disabled:opacity-40 disabled:pointer-events-none"
                 >
                   ✓ Cerrar apuesta
@@ -958,6 +981,7 @@ export default function PanelOperador() {
                 <button
                   type="button"
                   onClick={volverALaJugada}
+                  data-guia="op-volver"
                   className="self-start flex items-center gap-1.5 text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 transition-colors"
                 >
                   ← Volver a la jugada
@@ -992,6 +1016,7 @@ export default function PanelOperador() {
                     maxLength={LIMITES.nombreApostador}
                     onChange={(e) => setApostadorNombre(limpiarTexto(e.target.value, LIMITES.nombreApostador))}
                     onKeyDown={(e) => e.key === "Enter" && agregarApostador()}
+                    data-guia="op-q-apostador"
                     placeholder="Nombre del apostador"
                     className="flex-1 py-2.5 px-3 bg-white/[.06] border-2 border-border rounded-xl font-bold outline-none focus:border-gold"
                   />
@@ -1010,6 +1035,7 @@ export default function PanelOperador() {
                   type="button"
                   disabled={enviando}
                   onClick={iniciarCierreQuiniela}
+                  data-guia="op-q-cerrar"
                   className="w-full py-3 bg-gradient-to-br from-gold to-gold-2 text-navy rounded-xl font-black transition-all active:scale-[.98] disabled:opacity-50"
                 >
                   {slotActivoObj.cerrando ? "✓ Confirmar cierre" : "▶ Cerrar Quiniela"}
@@ -1028,7 +1054,7 @@ export default function PanelOperador() {
                     {(slotActivoObj.apostadores.length * (Number(slotActivoObj.montoLugar) || 0)).toLocaleString("es-MX")}
                   </p>
                 </div>
-                <div className="sin-scrollbar max-h-[45dvh] overflow-y-auto flex flex-col gap-1.5">
+                <div data-guia="op-q-lista" className="sin-scrollbar max-h-[45dvh] overflow-y-auto flex flex-col gap-1.5">
                   {slotActivoObj.apostadores.length === 0 && (
                     <div className="bg-white/[.03] border border-border/60 rounded-xl p-4 text-center text-white/30 text-sm">
                       Sin apostadores aún.
@@ -1061,7 +1087,7 @@ export default function PanelOperador() {
                 </div>
               </section>
             ) : (
-              <section>
+              <section data-guia="op-palenques">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-bold text-sm">Palenques abiertos</p>
                   <button
@@ -1123,7 +1149,7 @@ export default function PanelOperador() {
         {tab === "historial" && (
           <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <div className="flex gap-2">
+              <div data-guia="op-filtros" className="flex gap-2">
                 {(["todas", "pendientes"] as const).map((f) => (
                   <button
                     key={f}
@@ -1138,6 +1164,7 @@ export default function PanelOperador() {
               </div>
               <button
                 onClick={() => cargarHistorial()}
+                data-guia="op-actualizar"
                 className="text-xs font-bold text-white/40 hover:text-gold transition-colors"
               >
                 ↻ Actualizar
@@ -1147,8 +1174,10 @@ export default function PanelOperador() {
             {historialFiltrado.length === 0 && (
               <p className="text-white/30 text-sm">No hay jugadas que mostrar.</p>
             )}
+            {/* Lista con su propia caja de scroll: un historial largo no empuja la página. */}
+            <div data-guia="op-historial" className="flex flex-col gap-2 max-h-[65dvh] overflow-y-auto sin-scrollbar">
             {historialFiltrado.map((j) => (
-              <div key={j.id} className="bg-card/60 border border-border rounded-xl p-3">
+              <div key={j.id} className="bg-card/60 border border-border rounded-xl p-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-bold text-sm">{j.evento}</p>
@@ -1160,6 +1189,7 @@ export default function PanelOperador() {
                   {j.resultado === "" ? (
                     <button
                       onClick={() => setApuestaAEditar(j)}
+                      data-guia={j.id === idPrimeraPendiente ? "op-editar" : undefined}
                       className="text-xs font-bold text-gold border border-gold/30 px-3 py-1.5 rounded-lg hover:bg-gold/10 flex-shrink-0"
                     >
                       Editar
@@ -1176,6 +1206,7 @@ export default function PanelOperador() {
                 </div>
               </div>
             ))}
+            </div>
           </section>
         )}
       </main>
@@ -1215,6 +1246,9 @@ export default function PanelOperador() {
 
       {/* En el palenque se trabaja desde el celular: igual que HGC, en celular se pide instalarla. */}
       <InstalarApp nombre="PeliStreams" forma="pantalla" />
+
+      {/* Ayuda guiada (como HGC): sale sola la primera vez en cada parte; el "?" del encabezado la repite. */}
+      <Recorrido key={pantallaGuia} pantalla={pantallaGuia} />
     </div>
   );
 }
@@ -1330,7 +1364,7 @@ function ModalResultado({
               <p className="font-display text-gold text-xl tracking-wide">{evento}</p>
             </div>
 
-            <div className="flex gap-2 mb-2">
+            <div data-guia="op-r-ganador" className="flex gap-2 mb-2">
               <button
                 type="button"
                 onClick={() => onElegir("verde")}
@@ -1352,6 +1386,7 @@ function ModalResultado({
             <button
               type="button"
               onClick={() => onElegir("empate")}
+              data-guia="op-r-empate"
               className="w-full py-2.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-300 font-black text-sm mb-2 transition-all active:scale-95"
             >
               ⚖ Empate
@@ -1359,6 +1394,7 @@ function ModalResultado({
             <button
               type="button"
               onClick={() => onElegir("cancelada")}
+              data-guia="op-r-cancelada"
               className="w-full py-2.5 rounded-xl bg-white/[.04] border-2 border-border text-white/50 font-black text-sm mb-4 transition-all active:scale-95"
             >
               ✕ Cancelada
@@ -1433,6 +1469,7 @@ function ModalResultado({
                       type="button"
                       disabled={enviando}
                       onClick={onConfirmar}
+                      data-guia="op-r-confirmar"
                       className="flex-[2] py-3 rounded-xl bg-gradient-to-br from-gold to-gold-2 text-navy font-black text-sm transition-all active:scale-[.98] disabled:opacity-50"
                     >
                       {enviando ? "Cerrando…" : "✓ Confirmar"}
@@ -1475,6 +1512,7 @@ function ModalEditarApuesta({
         <input
           type="text"
           inputMode="numeric"
+          data-guia="op-e-monto"
           value={monto}
           onChange={(e) => setMonto(limpiarDigitos(e.target.value, 7))}
           onKeyDown={soloDigitos}
@@ -1483,7 +1521,7 @@ function ModalEditarApuesta({
         {!montoValido && <p className="text-red-300 text-xs -mt-2 mb-3">Debe estar entre $500 y $1,000,000.</p>}
 
         <span className="block text-xs text-white/50 mb-1.5 font-bold">Color de la apuesta</span>
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div data-guia="op-e-color" className="grid grid-cols-2 gap-3 mb-4">
           <button
             type="button"
             onClick={() => setColor("rojo")}
@@ -1503,6 +1541,7 @@ function ModalEditarApuesta({
         <button
           disabled={!montoValido || enviando}
           onClick={() => onGuardar(montoNum, color)}
+          data-guia="op-e-guardar"
           className="w-full py-3 bg-gradient-to-br from-gold to-gold-2 text-navy rounded-xl font-black disabled:opacity-50"
         >
           {enviando ? "Guardando…" : "Guardar cambios"}

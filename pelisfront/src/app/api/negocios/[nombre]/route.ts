@@ -17,15 +17,23 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ detail: "Activo: dato inválido." }, { status: 400 });
     }
     const activo = datos.activo;
-    const maxOperadores = V.entero(datos.max_operadores, "Máx. operadores", 1, V.LIMITES.maxOperadores);
+    // Tipo de dato siempre; los límites del negocio (máx. 10 operadores, corretaje 10–100 %) solo si el valor
+    // CAMBIA, para que un negocio viejo fuera de rango se pueda seguir activando/desactivando sin tocarlo.
+    const maxOperadores = V.entero(datos.max_operadores, "Máx. operadores", 1, 1000);
     const corretajePct = V.porcentaje(datos.corretaje_pct, "El corretaje");
 
     const fila = await sql.begin(async (tx) => {
       const [actual] = await tx`
-        select activo from negocios where nombre = ${nombre} for update
+        select activo, max_operadores, corretaje_pct::float8 from negocios where nombre = ${nombre} for update
       `;
       if (!actual) {
         throw new ErrorHttp(404, "Negocio no encontrado.");
+      }
+      if (maxOperadores !== Number(actual.max_operadores)) {
+        V.entero(maxOperadores, "Máx. operadores", 1, V.LIMITES.maxOperadores);
+      }
+      if (corretajePct !== Number(actual.corretaje_pct)) {
+        V.porcentaje(corretajePct, "El corretaje", V.LIMITES.corretajeMin);
       }
 
       if (activo && !actual.activo) {

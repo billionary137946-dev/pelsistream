@@ -15,6 +15,15 @@ export async function verificarContrasena(contrasena: string, hash: string): Pro
   return bcrypt.compare(contrasena, hash);
 }
 
+// Contraseña temporal que da el admin ("Peli-7KQ4-M9TA"): 8 caracteres al azar criptográfico, sin los
+// que se confunden al dictarlos (0/O, 1/I/L). 31^8 ≈ 850 mil millones de combinaciones.
+const ALFABETO_TEMPORAL = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+export function contrasenaTemporal(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const c = Array.from(bytes, (b) => ALFABETO_TEMPORAL[b % ALFABETO_TEMPORAL.length]).join("");
+  return `Peli-${c.slice(0, 4)}-${c.slice(4)}`;
+}
+
 export interface PayloadToken {
   sub: string; // celular
   rol: string;

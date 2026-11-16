@@ -90,6 +90,11 @@ async function peticion<T>(
         window.location.href = "/login";
       }
     }
+    // 428: entró con la contraseña temporal del admin → nada funciona hasta que ponga una nueva suya.
+    if (respuesta.status === 428 && typeof window !== "undefined" && !window.location.pathname.startsWith("/cambiar-contrasena")) {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/cambiar-contrasena";
+    }
     throw new ErrorApi(mensajeHumano(respuesta.status, cuerpo), respuesta.status);
   }
   return cuerpo as T;
@@ -101,4 +106,6 @@ export const api = {
     peticion<T>(ruta, { method: "POST", body: datos ? JSON.stringify(datos) : undefined }),
   put: <T>(ruta: string, datos?: unknown) =>
     peticion<T>(ruta, { method: "PUT", body: datos ? JSON.stringify(datos) : undefined }),
+  borrar: <T>(ruta: string, datos?: unknown) =>
+    peticion<T>(ruta, { method: "DELETE", body: datos ? JSON.stringify(datos) : undefined }),
 };
