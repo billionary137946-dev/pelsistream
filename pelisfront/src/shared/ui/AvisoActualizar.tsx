@@ -1,6 +1,6 @@
 "use client";
 
-// "Hay una versión nueva · Actualizar" (copiado de HGC). Cada 5 minutos y cada vez que la app vuelve a la
+// "Hay una versión nueva · Actualizar" (copiado de HGC). Al abrir, cada 5 minutos y cada vez que la app vuelve a la
 // pantalla, pregunta a /api/version qué versión está publicada. Si es distinta a la que se cargó, aparece
 // la barra; al tocar se recarga con lo nuevo. En local (versión "dev") no hace nada.
 // Importa en la app instalada: sin esto, el celular se queda con la versión vieja hasta cerrarla por completo.
@@ -25,10 +25,13 @@ export function AvisoActualizar() {
       }
     };
     const alVolver = () => document.visibilityState === "visible" && void revisar();
+    // También al abrir la app (unos segundos después, para no competir con la carga del panel).
+    const inicial = setTimeout(revisar, 3000);
     const t = setInterval(revisar, CADA);
     document.addEventListener("visibilitychange", alVolver);
     return () => {
       vivo = false;
+      clearTimeout(inicial);
       clearInterval(t);
       document.removeEventListener("visibilitychange", alVolver);
     };

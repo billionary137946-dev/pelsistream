@@ -21,6 +21,8 @@ import {
 } from "@/shared/lib/inputs";
 import { api, ErrorApi } from "@/shared/lib/api";
 import { PanelHeader } from "@/shared/ui/PanelHeader";
+import { PantallaApp } from "@/shared/ui/PantallaApp";
+import { BottomNav } from "@/shared/ui/BottomNav";
 import { Campo } from "@/shared/ui/Campo";
 import { Toast, type DatosToast } from "@/shared/ui/Toast";
 import { InstalarApp } from "@/shared/ui/InstalarApp";
@@ -304,22 +306,23 @@ export default function PanelAdmin() {
   }
 
   return (
-    <div className="min-h-[100dvh] pb-[calc(2rem+env(safe-area-inset-bottom))]">
-      <PanelHeader titulo="Panel de administrador" alias={sesion.alias} />
-
-      <nav className="flex gap-1 p-3 overflow-x-auto border-b border-border">
-        {(["inicio", "negocios", "operadores", "clientes"] as Pestana[]).map((p) => (
-          <button
-            key={p}
-            onClick={() => setPestana(p)}
-            className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${
-              pestana === p ? "bg-gold text-navy" : "text-white/50 hover:text-white"
-            }`}
-          >
-            {p[0].toUpperCase() + p.slice(1)}
-          </button>
-        ))}
-      </nav>
+    <div>
+      {/* Encabezado y menú fijos; solo el contenido hace scroll (shared/ui/PantallaApp.tsx). */}
+      <PantallaApp
+        encabezado={<PanelHeader titulo="Panel de administrador" alias={sesion.alias} />}
+        pie={
+          <BottomNav
+            activo={pestana}
+            onCambiar={(id) => setPestana(id as Pestana)}
+            items={[
+              { id: "inicio", etiqueta: "Inicio", icono: <span>🏠</span> },
+              { id: "negocios", etiqueta: "Negocios", icono: <span>🏪</span> },
+              { id: "operadores", etiqueta: "Operadores", icono: <span>🧑‍💼</span> },
+              { id: "clientes", etiqueta: "Clientes", icono: <span>👥</span> },
+            ]}
+          />
+        }
+      >
 
       <Toast datos={toast} onCerrar={() => setToast(null)} />
 
@@ -422,6 +425,7 @@ export default function PanelAdmin() {
           )
         )}
       </main>
+      </PantallaApp>
 
       {historialAbierto && (
         <ModalHistorial

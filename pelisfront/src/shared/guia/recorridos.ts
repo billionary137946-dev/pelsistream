@@ -312,12 +312,17 @@ export const RECORRIDOS: Record<Pantalla, PasoRecorrido[]> = {
     {
       objetivo: '[data-guia="cli-saldo"]',
       titulo: "Tu saldo",
-      texto: "Se actualiza solo cada 5 segundos. Si sale en rojo, debes ese monto.",
+      texto: "Se actualiza solo cada 5 segundos. Si sale en rojo, debes ese monto. Abajo ves cuántas apuestas tienes pendientes y cuánto tienes en juego.",
     },
     {
       objetivo: '[data-guia="cli-historial"]',
       titulo: "Tu historial",
       texto: "Cada apuesta que hiciste: en qué jugada, a qué color, cuánto y si ganó o sigue pendiente.",
+    },
+    {
+      objetivo: '[data-guia="menu"]',
+      titulo: "Saldo e Historial",
+      texto: "Abajo cambias entre tu saldo (con lo que tienes en juego) y tu historial de apuestas.",
     },
     AYUDA,
   ],

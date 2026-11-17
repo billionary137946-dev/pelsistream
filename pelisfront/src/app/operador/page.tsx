@@ -19,6 +19,7 @@ import { useSesion } from "@/shared/lib/useSesion";
 import { api, ErrorApi } from "@/shared/lib/api";
 import { PanelHeader } from "@/shared/ui/PanelHeader";
 import { BottomNav } from "@/shared/ui/BottomNav";
+import { PantallaApp } from "@/shared/ui/PantallaApp";
 import { Campo } from "@/shared/ui/Campo";
 import { Toast, type DatosToast } from "@/shared/ui/Toast";
 import { LIMITES, limpiarDigitos, limpiarTexto, soloDigitos } from "@/shared/lib/inputs";
@@ -654,8 +655,25 @@ export default function PanelOperador() {
   }
 
   return (
-    <div className="min-h-[100dvh] pb-[calc(6rem+env(safe-area-inset-bottom))]">
-      <PanelHeader titulo={tab === "jugadas" ? "Nueva jugada" : tab === "clientes" ? "Mis clientes" : "Historial"} alias={sesion.alias} />
+    <div>
+      {/* Encabezado y menú fijos; solo el contenido hace scroll (shared/ui/PantallaApp.tsx). */}
+      <PantallaApp
+        encabezado={<PanelHeader titulo={tab === "jugadas" ? "Nueva jugada" : tab === "clientes" ? "Mis clientes" : "Historial"} alias={sesion.alias} />}
+        pie={
+    <BottomNav
+            activo={tab}
+            onCambiar={(id) => {
+              setTab(id as Tab);
+              if (id === "clientes") cargarClientes(true); // saldos al día al abrir la pestaña
+            }}
+            items={[
+              { id: "jugadas", etiqueta: "Jugadas", icono: <span>🎯</span> },
+              { id: "clientes", etiqueta: "Clientes", icono: <span>👥</span> },
+              { id: "historial", etiqueta: "Historial", icono: <span>📋</span> },
+            ]}
+          />
+        }
+      >
 
       <Toast datos={mensaje} onCerrar={() => setMensaje(null)} />
 
@@ -1221,19 +1239,8 @@ export default function PanelOperador() {
           </section>
         )}
       </main>
+      </PantallaApp>
 
-      <BottomNav
-        activo={tab}
-        onCambiar={(id) => {
-          setTab(id as Tab);
-          if (id === "clientes") cargarClientes(true); // saldos al día al abrir la pestaña
-        }}
-        items={[
-          { id: "jugadas", etiqueta: "Jugadas", icono: <span>🎯</span> },
-          { id: "clientes", etiqueta: "Clientes", icono: <span>👥</span> },
-          { id: "historial", etiqueta: "Historial", icono: <span>📋</span> },
-        ]}
-      />
 
       {modalResultado && (
         <ModalResultado

@@ -1,8 +1,4 @@
-// Navegación inferior tipo app nativa (ver v.2/funcionamiento.txt, sección
-// 9-d): más alcanzable con el pulgar que tabs arriba, que es lo que usaba
-// v2 (goTab). Se usa en /operador, que es el panel de más uso constante en
-// campo; admin sigue con tabs arriba porque ese rol sí vive más en
-// escritorio (ver funcionamiento.txt, sección 9).
+// Menú inferior fijo de los 3 paneles (admin, operador, cliente): más alcanzable con el pulgar.
 "use client";
 
 export interface ItemNav {
@@ -15,16 +11,18 @@ export function BottomNav({
   items,
   activo,
   onCambiar,
+  className = "",
 }: {
   items: ItemNav[];
   activo: string;
   onCambiar: (id: string) => void;
+  className?: string;
 }) {
   return (
     <nav
       data-guia="menu"
       aria-label="Menú"
-      className="fixed bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-md border-t border-border flex pb-[env(safe-area-inset-bottom)]"
+      className={`flex-shrink-0 z-20 bg-card border-t border-border flex pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] ${className}`}
       style={{ boxShadow: "0 -2px 16px rgba(0,0,0,.25)" }}
     >
       {items.map((item) => {
@@ -33,7 +31,8 @@ export function BottomNav({
           <button
             key={item.id}
             onClick={() => onCambiar(item.id)}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-bold transition-colors ${
+            aria-current={esActivo ? "page" : undefined}
+            className={`flex-1 min-w-0 min-h-14 flex flex-col items-center justify-center gap-1 py-2 text-xs font-bold transition-colors ${
               esActivo ? "text-gold" : "text-white/40 hover:text-white/70"
             }`}
           >

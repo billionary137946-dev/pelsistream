@@ -24,3 +24,9 @@ Formato: Síntoma · Causa · Arreglo · Fecha
 | 14 | "Activar cliente" podía cambiar saldo de un operador/admin | El `update` no filtraba por rol | `where ... and rol = 'cliente'` | 2026-11-16 |
 | 15 | Saldo/límite/máx. operadores aceptaban texto, NaN, infinito, negativos | `Number()` sin validar | `lib/server/validar.ts` en todas las rutas | 2026-11-16 |
 | 16 | Deploy desde GitHub falla: "No Next.js version detected" | Vercel (proyecto pelistreams) con Root Directory "." y la app vive en pelisfront/ (antes se subía con la CLI desde la carpeta) | Settings → Build and Deployment → Root Directory = `pelisfront` | 2026-11-16 |
+
+## #17 — `vercel link` reescribió pelisfront/.env.local
+- Síntoma: al enlazar la carpeta con `npx vercel link`, la CLI respondió "Updated .env.local file".
+- Causa: `vercel link` baja las variables del entorno Development de Vercel y reemplaza `.env.local`.
+- Arreglo: revisar que `.env.local` tenga DATABASE_URL, JWT_SECRETO y JWT_HORAS_EXPIRACION (si faltan, copiarlos de nuevo a mano). Próximas veces: `vercel link` con cuidado o respaldar `.env.local` antes.
+- Fecha: 2026-11-16

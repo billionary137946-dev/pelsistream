@@ -110,8 +110,13 @@ export function Recorrido({ pantalla }: Readonly<{ pantalla: Pantalla }>) {
     const z0 = Number.parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
     const r0 = el.getBoundingClientRect();
     const compacta = globalThis.innerWidth / z0 < 640 || globalThis.innerHeight / z0 < 560;
-    if (compacta || r0.height > globalThis.innerHeight * 0.5) globalThis.scrollTo({ top: r0.top + globalThis.scrollY - 76, behavior: suave });
-    else el.scrollIntoView({ block: "center", behavior: suave });
+    // Los paneles tienen encabezado y menú fijos y el contenido hace scroll en [data-scroll-principal]
+    // (shared/ui/PantallaApp.tsx); si no hay ese contenedor, se usa la ventana.
+    const caja = el.closest<HTMLElement>("[data-scroll-principal]");
+    if (compacta || r0.height > globalThis.innerHeight * 0.5) {
+      if (caja) caja.scrollTo({ top: r0.top - caja.getBoundingClientRect().top + caja.scrollTop - 12, behavior: suave });
+      else globalThis.scrollTo({ top: r0.top + globalThis.scrollY - 76, behavior: suave });
+    } else el.scrollIntoView({ block: "center", behavior: suave });
     const medir = () => {
       // En pantallas grandes la app usa zoom (globals.css): las medidas del navegador vienen con zoom y el
       // recorrido se dibuja dentro de la página (también con zoom) → se dividen para que el borde caiga exacto.
